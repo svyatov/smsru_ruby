@@ -34,6 +34,9 @@ class SmsRu
   #   forms, must be omitted for the Hash form
   # @param from [String, nil] an approved sender name
   # @param time [Integer, nil] schedule the send at this UNIX timestamp
+  # @param ttl [Integer, nil] message lifetime in minutes (1–1440); undelivered
+  #   messages are discarded after this period
+  # @param daytime [Boolean] when true, defer night-time sends to the recipient's daytime
   # @param translit [Boolean] transliterate Cyrillic to Latin
   # @param test [Boolean, nil] override the client's global test mode for this call
   # @param ip [String, nil] the end-user IP (anti-fraud for auth codes)
@@ -45,9 +48,11 @@ class SmsRu
   #   client.deliver("79991234567", "Hello!")
   # @example Per-number text
   #   client.deliver({ "79991234567" => "Hi Alice", "79991234568" => "Hi Bob" })
-  def deliver(to, text = nil, from: nil, time: nil, translit: false, test: nil, ip: nil, partner_id: nil)
-    params = { from:, time:, ip:, partner_id: }.compact
+  def deliver(to, text = nil, from: nil, time: nil, ttl: nil, daytime: false,
+              translit: false, test: nil, ip: nil, partner_id: nil)
+    params = { from:, time:, ttl:, ip:, partner_id: }.compact
     params[:translit] = 1 if translit
+    params[:daytime] = 1 if daytime
     params[:test] = 1 if test.nil? ? @test : test
     add_recipients(params, to, text)
     SendResult.build(request("/sms/send", **params))

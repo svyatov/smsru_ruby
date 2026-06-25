@@ -162,11 +162,12 @@ class TransportTest < Minitest::Test
   def test_options_are_encoded
     stub_request(:post, SEND_URL).to_return(body: OK_SEND)
 
-    @client.deliver("79991234567", "hi", from: "Company", translit: true, time: 1_280_307_978)
+    @client.deliver("79991234567", "hi", from: "Company", translit: true, time: 1_280_307_978, ttl: 60, daytime: true)
 
     assert_requested(:post, SEND_URL) do |req|
       body = URI.decode_www_form(req.body).to_h
-      body["from"] == "Company" && body["translit"] == "1" && body["time"] == "1280307978"
+      body["from"] == "Company" && body["translit"] == "1" && body["time"] == "1280307978" &&
+        body["ttl"] == "60" && body["daytime"] == "1"
     end
   end
 

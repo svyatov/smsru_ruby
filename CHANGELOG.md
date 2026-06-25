@@ -14,8 +14,8 @@ Versioning tracks the official SMS.ru PHP library.
 
 - Initial release: a modern, dependency-free Ruby port of the official SMS.ru PHP library.
 - `SmsRu#deliver` — send to one number, many numbers (same text), or a Hash of
-  `number => text` pairs; with `from`, `time`, `translit`, `test`, `ip`, and
-  `partner_id` options.
+  `number => text` pairs; with `from`, `time`, `ttl`, `daytime`, `translit`,
+  `test`, `ip`, and `partner_id` options.
 - `SmsRu#cost`, `#status`, `#call` (call-password).
 - Account info: `#balance`, `#limit`, `#free`, `#senders`, `#authed?`.
 - Stoplist management via `SmsRu#stoplist` (`#add`, `#remove`, `#list`).

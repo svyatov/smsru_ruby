@@ -106,7 +106,9 @@ Optional keyword arguments (all optional):
 client.deliver(
   "79991234567", "Hi",
   from: "MyCompany",     # approved sender name
-  time: Time.now.to_i + 3600, # scheduled send (UNIX time, up to 7 days ahead)
+  time: Time.now.to_i + 3600, # scheduled send (UNIX time, up to 2 months ahead)
+  ttl: 60,               # message lifetime in minutes (1–1440)
+  daytime: true,         # defer night-time sends to the recipient's daytime
   translit: true,        # transliterate Cyrillic to Latin
   test: true,            # test mode for this call (overrides the client default)
   ip: "192.0.2.1",       # end-user IP (for auth-code anti-fraud)
