@@ -10,9 +10,16 @@ class SmsRu
 
   # Raised when SMS.ru replies with a non-OK status. Carries the API's numeric
   # `code` and human-readable `text` (status_text).
+  #
+  # @!attribute [r] code
+  #   @return [Integer] the SMS.ru numeric status code
+  # @!attribute [r] text
+  #   @return [String] the human-readable status text
   class ResponseError < Error
     attr_reader :code, :text
 
+    # @param code [Integer] the SMS.ru numeric status code
+    # @param text [String] the human-readable status text
     def initialize(code:, text:)
       @code = code
       @text = text

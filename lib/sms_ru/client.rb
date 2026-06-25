@@ -5,6 +5,7 @@
 #   client = SmsRu.new("YOUR_API_ID")
 #   client.deliver("79991234567", "Hello!")
 class SmsRu
+  # Base URL of the SMS.ru HTTP API.
   BASE_URL = "https://sms.ru"
 
   # Transport-level exceptions that warrant a retry.
@@ -24,10 +25,26 @@ class SmsRu
     @retries = retries
   end
 
-  # Sends a message. `to` may be:
-  #   - String  -> one number   (text required)
-  #   - Array   -> many numbers, same text (text required)
-  #   - Hash    -> {number => text} pairs  (text must be omitted)
+  # Sends a message.
+  #
+  # @param to [String, Array<String>, Hash{String => String}] recipient(s):
+  #   a String for one number, an Array for the same text to many numbers, or a
+  #   Hash of `number => text` pairs for a different text per number.
+  # @param text [String, nil] the message text; required for the String/Array
+  #   forms, must be omitted for the Hash form
+  # @param from [String, nil] an approved sender name
+  # @param time [Integer, nil] schedule the send at this UNIX timestamp
+  # @param translit [Boolean] transliterate Cyrillic to Latin
+  # @param test [Boolean, nil] override the client's global test mode for this call
+  # @param ip [String, nil] the end-user IP (anti-fraud for auth codes)
+  # @param partner_id [Integer, nil] partner program id
+  # @return [SmsRu::SendResult]
+  # @raise [ArgumentError] if `text` is missing (String/Array) or given (Hash)
+  # @raise [SmsRu::ResponseError] if SMS.ru rejects the whole request
+  # @example Send one message
+  #   client.deliver("79991234567", "Hello!")
+  # @example Per-number text
+  #   client.deliver({ "79991234567" => "Hi Alice", "79991234568" => "Hi Bob" })
   def deliver(to, text = nil, from: nil, time: nil, translit: false, test: nil, ip: nil, partner_id: nil)
     params = { from:, time:, ip:, partner_id: }.compact
     params[:translit] = 1 if translit
@@ -37,13 +54,26 @@ class SmsRu
   end
 
   # Returns the cost and SMS count for a message without sending it.
+  #
+  # @param to [String, Array<String>] recipient(s)
+  # @param text [String, nil] the message text (omit for the price of one SMS)
+  # @param translit [Boolean] transliterate Cyrillic to Latin
+  # @return [SmsRu::Cost]
+  # @raise [SmsRu::ResponseError] if SMS.ru rejects the request
+  # @example
+  #   client.cost("79991234567", "How much?").total_cost
   def cost(to, text = nil, translit: false)
     params = { to: Array(to).join(","), text: text }.compact
     params[:translit] = 1 if translit
     Cost.build(request("/sms/cost", **params))
   end
 
-  # Delivery status for one id (-> Status) or an Array of ids (-> [Status]).
+  # Delivery status for one id or an Array of ids.
+  #
+  # @param sms_id [String, Array<String>] one message id or an Array of ids
+  # @return [SmsRu::Status, Array<SmsRu::Status>] a single Status for a String
+  #   argument, or an Array of Status for an Array argument
+  # @raise [SmsRu::ResponseError] if SMS.ru rejects the request
   def status(sms_id)
     statuses = Status.build_all(request("/sms/status", sms_id: Array(sms_id).join(",")))
     sms_id.is_a?(Array) ? statuses : statuses.first
@@ -51,16 +81,27 @@ class SmsRu
 
   # Requests a call-password: SMS.ru calls the number; the last 4 digits of the
   # calling number (returned as `code`) are the authorization code.
+  #
+  # @param phone [String, Integer] the number to call
+  # @return [SmsRu::Call]
+  # @raise [SmsRu::ResponseError] if SMS.ru rejects the request
   def call(phone)
     Call.build(request("/sms/call", phone: phone.to_s))
   end
 
+  # @return [SmsRu::Balance] the current account balance
   def balance = Balance.build(request("/my/balance"))
-  def limit   = Limit.build(request("/my/limit"))
-  def free    = Free.build(request("/my/free"))
+
+  # @return [SmsRu::Limit] the daily sending limit and today's usage
+  def limit = Limit.build(request("/my/limit"))
+
+  # @return [SmsRu::Free] the free-message allowance and today's usage
+  def free = Free.build(request("/my/free"))
+
+  # @return [Array<String>] the approved sender names on the account
   def senders = request("/my/senders")["senders"] || []
 
-  # True when the configured api_id is valid.
+  # @return [Boolean] true when the configured api_id is valid
   def authed?
     request("/auth/check")
     true
@@ -68,7 +109,10 @@ class SmsRu
     false
   end
 
-  def stoplist  = @stoplist ||= Stoplist.new(method(:request))
+  # @return [SmsRu::Stoplist] the stoplist sub-resource
+  def stoplist = @stoplist ||= Stoplist.new(method(:request))
+
+  # @return [SmsRu::Callbacks] the callbacks sub-resource
   def callbacks = @callbacks ||= Callbacks.new(method(:request))
 
   private
