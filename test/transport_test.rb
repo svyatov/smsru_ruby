@@ -93,18 +93,19 @@ class TransportTest < Minitest::Test
     assert_predicate result.messages.first, :ok?
   end
 
-  # /sms/call places a real, billed phone call (no test mode), so it is covered
+  # /code/call places a real, billed phone call (no test mode), so it is covered
   # with a stub rather than a recorded cassette.
   def test_call_returns_code
     body = '{"status":"OK","status_code":100,"code":"1435","call_id":"000000-1","cost":0.4,"balance":10.0}'
-    stub_request(:post, "https://sms.ru/sms/call?json=1").to_return(body: body)
+    stub_request(:post, "https://sms.ru/code/call?json=1").to_return(body: body)
 
     result = @client.call("79991234567")
 
     assert_equal "1435", result.code
     assert_equal "000000-1", result.call_id
-    assert_requested(:post, "https://sms.ru/sms/call?json=1") do |req|
-      URI.decode_www_form(req.body).to_h["phone"] == "79991234567"
+    assert_requested(:post, "https://sms.ru/code/call?json=1") do |req|
+      body = URI.decode_www_form(req.body).to_h
+      body["phone"] == "79991234567" && body["ip"] == "-1"
     end
   end
 

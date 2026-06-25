@@ -88,10 +88,12 @@ class SmsRu
   # calling number (returned as `code`) are the authorization code.
   #
   # @param phone [String, Integer] the number to call
+  # @param ip [String] the end-user IP (anti-fraud); "-1" for manual/local requests
+  # @param partner_id [Integer, nil] partner program id
   # @return [SmsRu::Call]
   # @raise [SmsRu::ResponseError] if SMS.ru rejects the request
-  def call(phone)
-    Call.build(request("/sms/call", phone: phone.to_s))
+  def call(phone, ip: "-1", partner_id: nil)
+    Call.build(request("/code/call", **{ phone: phone.to_s, ip:, partner_id: }.compact))
   end
 
   # @return [SmsRu::Balance] the current account balance
