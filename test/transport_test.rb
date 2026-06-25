@@ -93,6 +93,52 @@ class TransportTest < Minitest::Test
     assert_predicate result.messages.first, :ok?
   end
 
+  # /sms/call places a real, billed phone call (no test mode), so it is covered
+  # with a stub rather than a recorded cassette.
+  def test_call_returns_code
+    body = '{"status":"OK","status_code":100,"code":"1435","call_id":"000000-1","cost":0.4,"balance":10.0}'
+    stub_request(:post, "https://sms.ru/sms/call?json=1").to_return(body: body)
+
+    result = @client.call("79991234567")
+
+    assert_equal "1435", result.code
+    assert_equal "000000-1", result.call_id
+    assert_requested(:post, "https://sms.ru/sms/call?json=1") do |req|
+      URI.decode_www_form(req.body).to_h["phone"] == "79991234567"
+    end
+  end
+
+  # #stoplist mutates the live account and rejects placeholder numbers, so it is
+  # covered with stubs rather than recorded cassettes.
+  def test_stoplist_add_list_remove
+    stub_request(:post, "https://sms.ru/stoplist/add?json=1").to_return(body: '{"status":"OK","status_code":100}')
+    stub_request(:post, "https://sms.ru/stoplist/del?json=1").to_return(body: '{"status":"OK","status_code":100}')
+    stub_request(:post, "https://sms.ru/stoplist/get?json=1")
+      .to_return(body: '{"status":"OK","status_code":100,"stoplist":{"79991234567":"spam"}}')
+
+    assert @client.stoplist.add("79991234567", note: "spam")
+    entry = @client.stoplist.list.first
+
+    assert_equal "79991234567", entry.phone
+    assert_equal "spam", entry.note
+    assert @client.stoplist.remove("79991234567")
+  end
+
+  # #callbacks mutates the live account and echoes back existing URLs (possible
+  # secrets), so it is covered with stubs rather than recorded cassettes.
+  def test_callbacks_add_list_remove
+    stub_request(:post, "https://sms.ru/callback/add?json=1")
+      .to_return(body: '{"status":"OK","status_code":100,"callback":["https://example.com/cb"]}')
+    stub_request(:post, "https://sms.ru/callback/get?json=1")
+      .to_return(body: '{"status":"OK","status_code":100,"callback":["https://example.com/cb"]}')
+    stub_request(:post, "https://sms.ru/callback/del?json=1")
+      .to_return(body: '{"status":"OK","status_code":100,"callback":[]}')
+
+    assert_equal ["https://example.com/cb"], @client.callbacks.add("https://example.com/cb")
+    assert_equal ["https://example.com/cb"], @client.callbacks.list
+    assert_empty @client.callbacks.remove("https://example.com/cb")
+  end
+
   def test_authed_true_when_api_id_valid
     stub_request(:post, "https://sms.ru/auth/check?json=1").to_return(body: '{"status":"OK","status_code":100}')
 

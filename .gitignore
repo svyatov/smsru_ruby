@@ -6,3 +6,6 @@
 /pkg/
 /tmp/
 *.gem
+
+# Local secrets (e.g. SMSRU_API_ID for `rake vcr:record`)
+.env

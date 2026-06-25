@@ -1,0 +1,50 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://sms.ru/my/free?json=1
+    body:
+      encoding: US-ASCII
+      string: api_id=<API_ID>
+    headers:
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Thu, 25 Jun 2026 18:01:56 GMT
+      Content-Type:
+      - application/json; charset=utf-8
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      Cache-Control:
+      - no-store
+      Set-Cookie:
+      - dev_id=FD97F09E-7211-347E-61C8-2FA9675C6FBC; expires=Sat, 03-May-2036 18:01:56
+        GMT; Max-Age=311040000; path=/; domain=.sms.ru
+      Sms-Api:
+      - '1'
+      Server:
+      - CERN/3.0
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+            "status": "OK",
+            "status_code": 100,
+            "total_free": 5,
+            "used_today": null
+        }
+  recorded_at: Thu, 25 Jun 2026 18:01:55 GMT
+recorded_with: VCR 6.4.0

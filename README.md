@@ -92,11 +92,12 @@ client.deliver("79991234567", "Hi there")
 # 2. Same text to many numbers (Array)
 client.deliver(["79991234567", "79991234568"], "Hi everyone")
 
-# 3. A different text per number (Hash — do not pass a separate text)
-client.deliver(
+# 3. A different text per number (Hash — do not pass a separate text).
+#    Use braces so Ruby treats it as a positional Hash, not keyword arguments.
+client.deliver({
   "79991234567" => "Hi Alice",
   "79991234568" => "Hi Bob"
-)
+})
 ```
 
 Optional keyword arguments (all optional):

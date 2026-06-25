@@ -1,0 +1,45 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://sms.ru/sms/send?json=1
+    body:
+      encoding: US-ASCII
+      string: test=1&to=79255070602&msg=Hello+from+sms_ru_ruby&api_id=<API_ID>
+    headers:
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Thu, 25 Jun 2026 18:11:31 GMT
+      Content-Type:
+      - application/json; charset=utf-8
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      Cache-Control:
+      - no-store
+      Set-Cookie:
+      - dev_id=F9395F4F-FE09-C535-567C-3F390494326E; expires=Sat, 03-May-2036 18:11:31
+        GMT; Max-Age=311040000; path=/; domain=.sms.ru
+      Sms-Api:
+      - '1'
+      Server:
+      - CERN/3.0
+    body:
+      encoding: ASCII-8BIT
+      string: !binary |-
+        ewogICAgInN0YXR1cyI6ICJPSyIsCiAgICAic3RhdHVzX2NvZGUiOiAxMDAsCiAgICAic21zIjogewogICAgICAgICI3OTI1NTA3MDYwMiI6IHsKICAgICAgICAgICAgInN0YXR1cyI6ICJFUlJPUiIsCiAgICAgICAgICAgICJzdGF0dXNfY29kZSI6IDIyMSwKICAgICAgICAgICAgInN0YXR1c190ZXh0IjogItCU0LvRjyDRgNCw0LHQvtGC0Ysg0YEg0L3QsNGI0LjQvCDRgdC10YDQstC40YHQvtC8LCDQvdC10L7QsdGF0L7QtNC40LzQviDRgdC+0LfQtNCw0YLRjCDQsdGD0LrQstC10L3QvdC+0LPQviDQvtGC0L/RgNCw0LLQuNGC0LXQu9GPLCDRgdC+0L7RgtCy0LXRgtGB0YLQstGD0Y7RidC10LPQviDQstCw0YjQtdC80YMg0YHQsNC50YLRgywg0L3QsNC30LLQsNC90LjRjiDRjtGALiDQu9C40YbQsCDQuNC70Lgg0YLQvtCy0LDRgNC90L7QvNGDINC30L3QsNC60YMgLSBodHRwczpcL1wvc21zLnJ1XC8/cGFuZWw9c2VuZGVycyIsCiAgICAgICAgICAgICJzbXNfaWQiOiAiMjAyNjI2LTEwMDAwMDIiCiAgICAgICAgfQogICAgfSwKICAgICJiYWxhbmNlIjogMTAwMC4wCn0=
+  recorded_at: Thu, 25 Jun 2026 18:11:31 GMT
+recorded_with: VCR 6.4.0
