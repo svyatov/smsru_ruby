@@ -29,7 +29,7 @@ class SmsRu
   #   - Array   -> many numbers, same text (text required)
   #   - Hash    -> {number => text} pairs  (text must be omitted)
   def deliver(to, text = nil, from: nil, time: nil, translit: false, test: nil, ip: nil, partner_id: nil)
-    params = { from: from, time: time, ip: ip, partner_id: partner_id }.compact
+    params = { from:, time:, ip:, partner_id: }.compact
     params[:translit] = 1 if translit
     params[:test] = 1 if test.nil? ? @test : test
     add_recipients(params, to, text)
