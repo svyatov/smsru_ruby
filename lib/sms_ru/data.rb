@@ -182,6 +182,44 @@ class SmsRu
     def self.build(hash) = new(total_free: hash["total_free"], used_today: hash["used_today"])
   end
 
+  # Result of SmsRu::CallCheck#add — the number the user must call to authorize.
+  #
+  # @!attribute [r] check_id
+  #   @return [String] the check id to poll with SmsRu::CallCheck#status
+  # @!attribute [r] call_phone
+  #   @return [String] the number the user must call
+  # @!attribute [r] call_phone_pretty
+  #   @return [String] the same number, formatted for display
+  # @!attribute [r] call_phone_html
+  #   @return [String] a mobile-clickable `tel:` link for the number
+  CallCheckResult = Data.define(:check_id, :call_phone, :call_phone_pretty, :call_phone_html) do
+    # @param hash [Hash] the parsed /callcheck/add response
+    # @return [SmsRu::CallCheckResult]
+    def self.build(hash)
+      new(
+        check_id: hash["check_id"],
+        call_phone: hash["call_phone"],
+        call_phone_pretty: hash["call_phone_pretty"],
+        call_phone_html: hash["call_phone_html"]
+      )
+    end
+  end
+
+  # Result of SmsRu::CallCheck#status — whether the authorizing call has arrived.
+  #
+  # @!attribute [r] check_status
+  #   @return [Integer] the check status code (401 once confirmed)
+  # @!attribute [r] check_status_text
+  #   @return [String, nil] the human-readable status, when present
+  CallCheckStatus = Data.define(:check_status, :check_status_text) do
+    # @param hash [Hash] the parsed /callcheck/status response
+    # @return [SmsRu::CallCheckStatus]
+    def self.build(hash) = new(check_status: hash["check_status"], check_status_text: hash["check_status_text"])
+
+    # @return [Boolean] true once the user has placed the authorizing call
+    def confirmed? = check_status == 401
+  end
+
   # One stoplist entry returned by SmsRu::Stoplist#list.
   #
   # @!attribute [r] phone

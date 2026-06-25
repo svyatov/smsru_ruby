@@ -154,6 +154,19 @@ call.code     # => "1435"
 call.call_id  # => "000000-10000000"
 ```
 
+## Authorize by incoming call (callcheck)
+
+The user authorizes by calling a number you show them; SMS.ru drops the call
+(free for the caller) and marks the check confirmed.
+
+```ruby
+check = client.callcheck.add("79991234567")
+check.call_phone_pretty  # => "+7 (800) 500-8275" — show this to the user
+
+# Poll until the user has called (or receive it via a callback/webhook):
+client.callcheck.status(check.check_id).confirmed?  # => true
+```
+
 ## Account information
 
 ```ruby

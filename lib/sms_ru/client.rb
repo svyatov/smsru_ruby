@@ -122,6 +122,9 @@ class SmsRu
   # @return [SmsRu::Callbacks] the callbacks sub-resource
   def callbacks = @callbacks ||= Callbacks.new(method(:request))
 
+  # @return [SmsRu::CallCheck] the call-check (incoming-call auth) sub-resource
+  def callcheck = @callcheck ||= CallCheck.new(method(:request))
+
   private
 
   def add_recipients(params, to, text)

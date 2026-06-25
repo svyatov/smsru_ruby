@@ -109,6 +109,22 @@ class TransportTest < Minitest::Test
     end
   end
 
+  # #callcheck registers a real authorization check against a live number, so it
+  # is covered with stubs rather than recorded cassettes.
+  def test_callcheck_add_then_status
+    stub_request(:post, "https://sms.ru/callcheck/add?json=1")
+      .to_return(body: '{"status":"OK","status_code":100,"check_id":"a1b2","call_phone":"78005008275",' \
+                       '"call_phone_pretty":"+7 (800) 500-8275","call_phone_html":"<a>call</a>"}')
+    stub_request(:post, "https://sms.ru/callcheck/status?json=1")
+      .to_return(body: '{"status":"OK","status_code":100,"check_status":401,"check_status_text":"Подтвержден"}')
+
+    check = @client.callcheck.add("79991234567")
+
+    assert_equal "a1b2", check.check_id
+    assert_equal "+7 (800) 500-8275", check.call_phone_pretty
+    assert_predicate @client.callcheck.status(check.check_id), :confirmed?
+  end
+
   # #stoplist mutates the live account and rejects placeholder numbers, so it is
   # covered with stubs rather than recorded cassettes.
   def test_stoplist_add_list_remove

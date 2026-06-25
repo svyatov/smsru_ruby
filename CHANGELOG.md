@@ -21,6 +21,7 @@ Versioning tracks the official SMS.ru PHP library.
 - Stoplist management via `SmsRu#stoplist` (`#add`, `#remove`, `#list`).
 - Callback (webhook) management via `SmsRu#callbacks` (`#add`, `#remove`, `#list`)
   and inbound payload parsing with `SmsRu::Callback.parse`.
+- Authorize-by-incoming-call (callcheck) via `SmsRu#callcheck` (`#add`, `#status`).
 - Typed, immutable result objects and a typed error hierarchy under `SmsRu::Error`.
 - Configurable `timeout`, global `test` mode, and `retries` (TLS always verified).
 
