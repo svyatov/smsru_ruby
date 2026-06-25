@@ -99,8 +99,17 @@ class ClientTest < Minitest::Test
     end
   end
 
-  # NOTE: #call, #stoplist and #callbacks are intentionally not recorded —
-  # /sms/call places a real billed phone call, and stoplist/callbacks mutate the
-  # live account (callbacks responses can echo back secrets). They are covered
-  # deterministically in transport_test.rb.
+  def test_callbacks_add_list_remove
+    url = "https://example.com/sms/callback"
+
+    with_cassette("callbacks") do
+      assert_includes @client.callbacks.add(url), url
+      assert_includes @client.callbacks.list, url
+      refute_includes @client.callbacks.remove(url), url
+    end
+  end
+
+  # NOTE: #call and #stoplist are intentionally not recorded — /sms/call places a
+  # real billed phone call, and stoplist mutates the live account and rejects
+  # placeholder numbers. They are covered deterministically in transport_test.rb.
 end

@@ -124,21 +124,6 @@ class TransportTest < Minitest::Test
     assert @client.stoplist.remove("79991234567")
   end
 
-  # #callbacks mutates the live account and echoes back existing URLs (possible
-  # secrets), so it is covered with stubs rather than recorded cassettes.
-  def test_callbacks_add_list_remove
-    stub_request(:post, "https://sms.ru/callback/add?json=1")
-      .to_return(body: '{"status":"OK","status_code":100,"callback":["https://example.com/cb"]}')
-    stub_request(:post, "https://sms.ru/callback/get?json=1")
-      .to_return(body: '{"status":"OK","status_code":100,"callback":["https://example.com/cb"]}')
-    stub_request(:post, "https://sms.ru/callback/del?json=1")
-      .to_return(body: '{"status":"OK","status_code":100,"callback":[]}')
-
-    assert_equal ["https://example.com/cb"], @client.callbacks.add("https://example.com/cb")
-    assert_equal ["https://example.com/cb"], @client.callbacks.list
-    assert_empty @client.callbacks.remove("https://example.com/cb")
-  end
-
   def test_authed_true_when_api_id_valid
     stub_request(:post, "https://sms.ru/auth/check?json=1").to_return(body: '{"status":"OK","status_code":100}')
 
