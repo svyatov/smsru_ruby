@@ -33,6 +33,10 @@ same API, reworked to be idiomatic Ruby. How it differs from the original:
 - **Zero runtime dependencies** (Ruby stdlib only, no curl), TLS verified by
   default, with configurable `timeout`, `retries`, global `test` mode, and an
   optional `logger`.
+- **Ships RBS type signatures** (`sig/`) checked at 100% coverage under Steep's
+  strict profile and verified against the test suite at runtime (`rbs test`);
+  SMS.ru's loosely-typed JSON is normalized to the declared types at the parse
+  boundary, so result objects never surface raw wire values.
 
 [Unreleased]: https://github.com/svyatov/smsru_ruby/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/svyatov/smsru_ruby/releases/tag/v1.0.0
