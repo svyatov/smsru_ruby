@@ -133,7 +133,7 @@ class SmsRu
   end
 
   def request(path, **params)
-    params[:api_id] = @api_id unless Coerce.string(params[:api_id]) == "none"
+    params[:api_id] = @api_id unless Coerce.string?(params[:api_id]) == "none"
     @logger&.debug("[SmsRu] POST #{path}")
     uri = URI("#{BASE_URL}#{path}?json=1") #: URI::HTTP
     perform(uri, URI.encode_www_form(params))
@@ -165,7 +165,7 @@ class SmsRu
 
   def parse(raw)
     data = Coerce.records(JSON.parse(raw.to_s))
-    status = Coerce.string(data["status"])
+    status = Coerce.string?(data["status"])
     raise ConnectionError, "Malformed response from SMS.ru" unless status
     return data if status == "OK"
 
@@ -176,8 +176,8 @@ class SmsRu
 
   def error_for(data)
     code = Coerce.integer(data["status_code"])
-    text = Coerce.string(data["status_text"]) || "SMS.ru returned an error"
-    error_class(code).new(code: code || 0, text: text)
+    text = Coerce.string(data["status_text"], "SMS.ru returned an error")
+    error_class(code).new(code: code, text: text)
   end
 
   def error_class(code)

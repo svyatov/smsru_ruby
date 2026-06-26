@@ -32,12 +32,12 @@ class SmsRu
     # @param hash [Hash] one entry of the response `sms` object
     # @return [SmsRu::Sms]
     def self.build(phone, hash)
-      ok = Coerce.string(hash["status"]) == "OK"
+      ok = Coerce.string?(hash["status"]) == "OK"
       new(
         phone: String(phone),
-        sms_id: Coerce.string(hash["sms_id"]),
-        error_code: ok ? nil : Coerce.integer(hash["status_code"]),
-        error_text: ok ? nil : Coerce.string(hash["status_text"])
+        sms_id: Coerce.string?(hash["sms_id"]),
+        error_code: ok ? nil : Coerce.integer?(hash["status_code"]),
+        error_text: ok ? nil : Coerce.string?(hash["status_text"])
       )
     end
 
@@ -60,7 +60,7 @@ class SmsRu
     # @return [SmsRu::SendResult]
     def self.build(hash)
       messages = Coerce.records(hash["sms"]).map { |phone, sms| Sms.build(phone, sms) }
-      new(balance: Coerce.float(hash["balance"]) || 0.0, messages: messages)
+      new(balance: Coerce.float(hash["balance"]), messages: messages)
     end
   end
 
@@ -85,9 +85,9 @@ class SmsRu
     def self.build(sms_id, hash)
       new(
         sms_id: String(sms_id),
-        status_code: Coerce.integer(hash["status_code"]) || Statuses::NOT_FOUND,
-        status_text: Coerce.string(hash["status_text"]),
-        cost: Coerce.float(hash["cost"])
+        status_code: Coerce.integer(hash["status_code"], Statuses::NOT_FOUND),
+        status_text: Coerce.string?(hash["status_text"]),
+        cost: Coerce.float?(hash["cost"])
       )
     end
 
@@ -117,13 +117,13 @@ class SmsRu
     # @param hash [Hash] one entry of the response `sms` object
     # @return [SmsRu::CostItem]
     def self.build(phone, hash)
-      ok = Coerce.string(hash["status"]) == "OK"
+      ok = Coerce.string?(hash["status"]) == "OK"
       new(
         phone: String(phone),
-        cost: Coerce.float(hash["cost"]),
-        sms_count: Coerce.integer(hash["sms"]),
-        error_code: ok ? nil : Coerce.integer(hash["status_code"]),
-        error_text: ok ? nil : Coerce.string(hash["status_text"])
+        cost: Coerce.float?(hash["cost"]),
+        sms_count: Coerce.integer?(hash["sms"]),
+        error_code: ok ? nil : Coerce.integer?(hash["status_code"]),
+        error_text: ok ? nil : Coerce.string?(hash["status_text"])
       )
     end
 
@@ -147,8 +147,8 @@ class SmsRu
     def self.build(hash)
       messages = Coerce.records(hash["sms"]).map { |phone, cost| CostItem.build(phone, cost) }
       new(
-        total_cost: Coerce.float(hash["total_cost"]) || 0.0,
-        total_sms: Coerce.integer(hash["total_sms"]) || 0,
+        total_cost: Coerce.float(hash["total_cost"]),
+        total_sms: Coerce.integer(hash["total_sms"]),
         messages: messages
       )
     end
@@ -170,10 +170,10 @@ class SmsRu
     # @return [SmsRu::Call]
     def self.build(hash)
       new(
-        code: Coerce.string(hash["code"]) || "",
-        call_id: Coerce.string(hash["call_id"]) || "",
-        cost: Coerce.float(hash["cost"]) || 0.0,
-        balance: Coerce.float(hash["balance"]) || 0.0
+        code: Coerce.string(hash["code"]),
+        call_id: Coerce.string(hash["call_id"]),
+        cost: Coerce.float(hash["cost"]),
+        balance: Coerce.float(hash["balance"])
       )
     end
   end
@@ -188,7 +188,7 @@ class SmsRu
     # @param hash [Hash] the parsed /my/limit response
     # @return [SmsRu::Limit]
     def self.build(hash)
-      new(total_limit: Coerce.integer(hash["total_limit"]) || 0, used_today: Coerce.integer(hash["used_today"]) || 0)
+      new(total_limit: Coerce.integer(hash["total_limit"]), used_today: Coerce.integer(hash["used_today"]))
     end
 
     # @return [Integer] how many more messages can be sent today
@@ -205,7 +205,7 @@ class SmsRu
     # @param hash [Hash] the parsed /my/free response
     # @return [SmsRu::FreeLimit]
     def self.build(hash)
-      new(total_free: Coerce.integer(hash["total_free"]) || 0, used_today: Coerce.integer(hash["used_today"]) || 0)
+      new(total_free: Coerce.integer(hash["total_free"]), used_today: Coerce.integer(hash["used_today"]))
     end
 
     # @return [Integer] how many free messages remain today
@@ -227,10 +227,10 @@ class SmsRu
     # @return [SmsRu::CallCheckResult]
     def self.build(hash)
       new(
-        check_id: Coerce.string(hash["check_id"]) || "",
-        call_phone: Coerce.string(hash["call_phone"]) || "",
-        call_phone_pretty: Coerce.string(hash["call_phone_pretty"]) || "",
-        call_phone_html: Coerce.string(hash["call_phone_html"]) || ""
+        check_id: Coerce.string(hash["check_id"]),
+        call_phone: Coerce.string(hash["call_phone"]),
+        call_phone_pretty: Coerce.string(hash["call_phone_pretty"]),
+        call_phone_html: Coerce.string(hash["call_phone_html"])
       )
     end
   end
@@ -245,7 +245,7 @@ class SmsRu
     # @param hash [Hash] the parsed /callcheck/status response
     # @return [SmsRu::CallCheckStatus]
     def self.build(hash)
-      new(status_code: Coerce.integer(hash["check_status"]) || 0, status_text: Coerce.string(hash["check_status_text"]))
+      new(status_code: Coerce.integer(hash["check_status"]), status_text: Coerce.string?(hash["check_status_text"]))
     end
 
     # @return [Boolean] true once the user has placed the authorizing call

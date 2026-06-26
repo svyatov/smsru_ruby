@@ -61,7 +61,7 @@ class SmsRu
     # @param data [Hash, Array<String>, String, nil] the POST "data" parameter
     # @return [Array<String>] the records in the order SMS.ru sent them
     def self.entries(data)
-      data.is_a?(Hash) ? data.sort_by { |k, _| Coerce.integer(k) || 0 }.map(&:last) : Array(data)
+      data.is_a?(Hash) ? data.sort_by { |k, _| Coerce.integer(k) }.map(&:last) : Array(data)
     end
 
     # Parses an Integer from a webhook line, returning nil for blanks or garbage.

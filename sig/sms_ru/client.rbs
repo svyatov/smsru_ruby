@@ -49,5 +49,5 @@ class SmsRu
   def http: (URI::HTTP uri) -> Net::HTTP
   def parse: (String? raw) -> Hash[String, untyped]
   def error_for: (Hash[String, untyped] data) -> ResponseError
-  def error_class: (Integer? code) -> singleton(ResponseError)
+  def error_class: (Integer code) -> singleton(ResponseError)
 end
