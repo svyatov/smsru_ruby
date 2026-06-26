@@ -111,6 +111,9 @@ class SmsRu
         status_text: hash["status_text"]
       )
     end
+
+    # @return [Boolean] true when this recipient was priced successfully
+    def ok? = status == "OK"
   end
 
   # Result of SmsRu#cost.
@@ -151,13 +154,16 @@ class SmsRu
   # Result of SmsRu::My#limit (daily sending limit).
   #
   # @!attribute [r] total_limit
-  #   @return [String] the daily limit (SMS.ru returns this as a String)
+  #   @return [Integer] the daily limit
   # @!attribute [r] used_today
   #   @return [Integer] the number of messages sent today
   Limit = Data.define(:total_limit, :used_today) do
     # @param hash [Hash] the parsed /my/limit response
     # @return [SmsRu::Limit]
-    def self.build(hash) = new(total_limit: hash["total_limit"], used_today: hash["used_today"])
+    def self.build(hash) = new(total_limit: hash["total_limit"].to_i, used_today: hash["used_today"].to_i)
+
+    # @return [Integer] how many more messages can be sent today
+    def available_today = total_limit - used_today
   end
 
   # Result of SmsRu::My#free_limit (free daily messages).
@@ -165,11 +171,14 @@ class SmsRu
   # @!attribute [r] total_free
   #   @return [Integer] the daily allowance of free messages
   # @!attribute [r] used_today
-  #   @return [Integer, nil] the number used today (nil when unavailable)
+  #   @return [Integer] the number used today (0 when the API omits it)
   FreeLimit = Data.define(:total_free, :used_today) do
     # @param hash [Hash] the parsed /my/free response
     # @return [SmsRu::FreeLimit]
-    def self.build(hash) = new(total_free: hash["total_free"], used_today: hash["used_today"])
+    def self.build(hash) = new(total_free: hash["total_free"].to_i, used_today: hash["used_today"].to_i)
+
+    # @return [Integer] how many free messages remain today
+    def available_today = total_free - used_today
   end
 
   # Result of SmsRu::CallCheck#add — the number the user must call to authorize.
@@ -197,17 +206,17 @@ class SmsRu
 
   # Result of SmsRu::CallCheck#status — whether the authorizing call has arrived.
   #
-  # @!attribute [r] check_status
+  # @!attribute [r] status_code
   #   @return [Integer] the check status code (401 once confirmed)
-  # @!attribute [r] check_status_text
+  # @!attribute [r] status_text
   #   @return [String, nil] the human-readable status, when present
-  CallCheckStatus = Data.define(:check_status, :check_status_text) do
+  CallCheckStatus = Data.define(:status_code, :status_text) do
     # @param hash [Hash] the parsed /callcheck/status response
     # @return [SmsRu::CallCheckStatus]
-    def self.build(hash) = new(check_status: hash["check_status"], check_status_text: hash["check_status_text"])
+    def self.build(hash) = new(status_code: hash["check_status"], status_text: hash["check_status_text"])
 
     # @return [Boolean] true once the user has placed the authorizing call
-    def confirmed? = check_status == 401
+    def confirmed? = status_code == 401
   end
 
   # One stoplist entry returned by SmsRu::Stoplist#list.

@@ -177,10 +177,12 @@ client.my.balance          # => 4762.58 (a Float)
 limit = client.my.limit
 limit.total_limit          # => 100
 limit.used_today           # => 7
+limit.available_today      # => 93
 
 free = client.my.free_limit
 free.total_free            # => 5
 free.used_today            # => 3
+free.available_today       # => 2
 
 client.my.senders          # => ["MyCompany", "AnotherName"]
 ```
@@ -217,7 +219,7 @@ replying with the string `"100"`:
 
 ```ruby
 # `data` is the POST "data" parameter (an Array of records)
-events = SmsRu::Callback.parse(params["data"])
+events = SmsRu::Webhook.parse(params["data"])
 
 events.each do |event|
   next unless event.sms_status?

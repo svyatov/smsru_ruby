@@ -17,11 +17,12 @@ Versioning tracks the official SMS.ru PHP library.
   `number => text` pairs; with `from`, `time`, `ttl`, `daytime`, `translit`,
   `test`, `ip`, and `partner_id` options.
 - `SmsRu#cost`, `#status`, `#call` (call-password; `ip`/`partner_id` options).
-- Account info via `SmsRu#my` (`#balance` → Float, `#limit`, `#free_limit`, `#senders`).
+- Account info via `SmsRu#my` (`#balance` → Float, `#limit`, `#free_limit`,
+  `#senders`); `Limit`/`FreeLimit` expose integer counters and `#available_today`.
 - Credential check via `SmsRu#auth` (`#ok?`).
 - Stoplist management via `SmsRu#stoplist` (`#add`, `#remove`, `#list`).
-- Callback (webhook) management via `SmsRu#callbacks` (`#add`, `#remove`, `#list`)
-  and inbound payload parsing with `SmsRu::Callback.parse`.
+- Callback (webhook) URL management via `SmsRu#callbacks` (`#add`, `#remove`,
+  `#list`) and inbound payload parsing with `SmsRu::Webhook.parse`.
 - Authorize-by-incoming-call (callcheck) via `SmsRu#callcheck` (`#add`, `#status`).
 - Typed, immutable result objects and a typed error hierarchy under `SmsRu::Error`.
 - Configurable `timeout`, global `test` mode, and `retries` (TLS always verified).

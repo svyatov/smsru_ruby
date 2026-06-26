@@ -5,9 +5,9 @@ class SmsRu
   # Pass the `data` request parameter (an Array of newline-joined records, or a
   # single record String) and acknowledge the webhook by replying with "100".
   #
-  #   events = SmsRu::Callback.parse(params["data"])
+  #   events = SmsRu::Webhook.parse(params["data"])
   #   events.each { |e| update_delivery(e.sms_id, e.status_code) if e.sms_status? }
-  module Callback
+  module Webhook
     # A single decoded webhook record. `raw` keeps every line for record types
     # this gem does not model explicitly.
     #
@@ -26,7 +26,7 @@ class SmsRu
 
     # @param data [Array<String>, String, nil] the POST "data" parameter — an
     #   Array of newline-joined records, or a single record String
-    # @return [Array<SmsRu::Callback::Event>] one event per record
+    # @return [Array<SmsRu::Webhook::Event>] one event per record
     def self.parse(data)
       Array(data).map do |entry|
         lines = entry.to_s.split("\n")

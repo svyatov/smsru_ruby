@@ -50,6 +50,7 @@ class DataTest < Minitest::Test
     assert_equal 2, cost.total_sms
     assert_in_delta 1.74, cost.messages.first.cost
     assert_equal 2, cost.messages.first.sms_count
+    assert_predicate cost.messages.first, :ok?
   end
 
   def test_status_build_all
@@ -67,14 +68,16 @@ class DataTest < Minitest::Test
     assert_predicate statuses.first, :ok?
   end
 
-  def test_scalar_builds
-    limit = SmsRu::Limit.build("total_limit" => 100, "used_today" => 7)
+  def test_scalar_builds_coerce_to_integers_and_compute_available
+    limit = SmsRu::Limit.build("total_limit" => "100", "used_today" => 7) # API sends total as a String
 
     assert_equal [100, 7], [limit.total_limit, limit.used_today]
+    assert_equal 93, limit.available_today
 
-    free = SmsRu::FreeLimit.build("total_free" => 5, "used_today" => 3)
+    free = SmsRu::FreeLimit.build("total_free" => 5, "used_today" => nil) # API may omit used_today
 
-    assert_equal [5, 3], [free.total_free, free.used_today]
+    assert_equal [5, 0], [free.total_free, free.used_today]
+    assert_equal 5, free.available_today
   end
 
   def test_call_build
