@@ -24,6 +24,7 @@ raising typed errors.
 - [Configuration](#configuration)
 - [Sending messages](#sending-messages)
 - [Cost, status and call-password](#cost-status-and-call-password)
+- [Authorize by incoming call (callcheck)](#authorize-by-incoming-call-callcheck)
 - [Account information](#account-information)
 - [Stoplist](#stoplist)
 - [Callbacks (webhooks)](#callbacks-webhooks)
@@ -205,8 +206,8 @@ client.stoplist.remove("79991234567") # => true
 
 ## Callbacks (webhooks)
 
-Register URLs that SMS.ru will POST delivery statuses to. Each method returns the
-full list of registered URLs:
+Register URLs that SMS.ru will POST delivery and call-authorization statuses to.
+Each method returns the full list of registered URLs:
 
 ```ruby
 client.callbacks.add("https://example.com/sms/callback") # => ["https://example.com/sms/callback"]
