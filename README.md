@@ -286,16 +286,23 @@ In your webhook handler, verify the signature, parse the payload, and
 acknowledge it by replying with the string `"100"`:
 
 ```ruby
+# In Rails, params[:data] is ActionController::Parameters, not a Hash — convert
+# it with .to_unsafe_h first, or the numeric-key ordering the signature depends
+# on is skipped and the check below rejects the payload. The payload is
+# signature-verified, so to_unsafe_h is safe here (.to_h would drop keys).
+# In bare Rack params["data"] is already a Hash; pass it as-is.
+data = params[:data].to_unsafe_h
+
 # Reject forged callbacks: SMS.ru signs every payload with your api_id.
 # The check is constant-time (timing-attack safe).
-unless SmsRu::Webhook.valid?(params["data"], params["hash"], "YOUR_API_ID")
+unless SmsRu::Webhook.valid?(data, params[:hash], "YOUR_API_ID")
   return head(:forbidden)
 end
 
 # SMS.ru sends up to 100 records as POST fields data[0]..data[N]
-# (a Hash in Rack/Rails, an Array in PHP). #parse handles either shape and
+# (a Hash in Rack, an Array in PHP). #parse handles either shape and
 # returns a typed event per record.
-SmsRu::Webhook.parse(params["data"]).each do |event|
+SmsRu::Webhook.parse(data).each do |event|
   case event
   when SmsRu::Events::SmsStatus        # delivery report
     # event.id, event.status_code, event.created_at; event.delivered? => 103

@@ -3,15 +3,23 @@
 class SmsRu
   # Parses the inbound webhook payload SMS.ru POSTs to your callback URL and
   # verifies its signature. SMS.ru sends the records as POST fields
-  # `data[0]..data[N]` (so `params["data"]` is a Hash in Rack/Rails, an Array
-  # in PHP) plus a `hash` field; acknowledge the webhook by replying with "100".
+  # `data[0]..data[N]` plus a `hash` field; acknowledge the webhook by replying
+  # with "100".
+  #
+  # The `data` param arrives as a Hash in bare Rack and an Array in PHP-style
+  # clients. In Rails it is an `ActionController::Parameters`, which is **not** a
+  # Hash — convert it with `.to_unsafe_h` first, or the numeric-key ordering the
+  # signature depends on is skipped and {valid?} rejects the payload. The
+  # payload is signature-verified, so `to_unsafe_h` is safe here (`.to_h` would
+  # drop unpermitted keys).
   #
   # {parse} returns one typed event per record — a {SmsRu::Events::SmsStatus},
   # {SmsRu::Events::CallcheckStatus}, {SmsRu::Events::Test}, or
   # {SmsRu::Events::Unknown} — best handled with a case match:
   #
-  #   return head(:forbidden) unless SmsRu::Webhook.valid?(params["data"], params["hash"], api_id)
-  #   SmsRu::Webhook.parse(params["data"]).each do |event|
+  #   data = params[:data].to_unsafe_h # Rails; pass params["data"] as-is in bare Rack
+  #   return head(:forbidden) unless SmsRu::Webhook.valid?(data, params[:hash], api_id)
+  #   SmsRu::Webhook.parse(data).each do |event|
   #     case event
   #     when SmsRu::Events::SmsStatus       then update_delivery(event.id, event.status_code)
   #     when SmsRu::Events::CallcheckStatus then confirm(event.id) if event.confirmed?
