@@ -2,8 +2,12 @@
 
 [![Gem Version](https://badge.fury.io/rb/smsru_ruby.svg)](https://rubygems.org/gems/smsru_ruby)
 [![CI](https://github.com/svyatov/smsru_ruby/actions/workflows/main.yml/badge.svg)](https://github.com/svyatov/smsru_ruby/actions/workflows/main.yml)
+[![codecov](https://codecov.io/gh/svyatov/smsru_ruby/branch/main/graph/badge.svg)](https://codecov.io/gh/svyatov/smsru_ruby)
+[![Documentation](https://img.shields.io/badge/docs-rubydoc.info-blue.svg)](https://rubydoc.info/gems/smsru_ruby)
+[![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.2-CC342D.svg)](https://www.ruby-lang.org)
 
-A modern, dependency-free Ruby client for the [SMS.ru](https://sms.ru) HTTP API.
+A modern, **dependency-free**, **fully typed** Ruby client for the [SMS.ru](https://sms.ru) HTTP API —
+typed results, typed errors, shipped RBS signatures, and first-class webhooks.
 
 It is a clean, idiomatic Ruby port of the official [SMS.ru PHP library](https://sms.ru/php):
 send single or bulk SMS, schedule delivery, check cost and delivery status, verify
@@ -11,13 +15,37 @@ users by phone call, inspect your balance/limits/senders, manage the stoplist, a
 register delivery callbacks — all returning typed, immutable result objects and
 raising typed errors.
 
-- **Zero runtime dependencies** — just Ruby's standard library (`net/http`, `json`).
-- **Typed results** — immutable `Data` objects, not raw hashes.
-- **Typed errors** — `rescue SmsRu::Error` to catch everything.
-- **TLS verified** by default, with configurable timeout and retries.
+## Why smsru_ruby?
+
+- **Zero runtime dependencies** — only Ruby's standard library (`net/http`, `json`, `openssl`).
+- **Fully typed** — immutable `Data` result objects, not raw hashes, plus a typed error hierarchy: `rescue SmsRu::Error` catches everything.
+- **RBS signatures shipped** (`sig/`) and Steep-checked — type-check your integration out of the box.
+- **First-class webhooks** — parse signed delivery and call-authorization callbacks into typed events; the signature is verified in **constant time** (timing-attack safe).
+- **Secret-safe by default** — TLS verified; the optional logger never logs your `api_id`, phone numbers, or message text. Configurable timeout and transport retries.
+- **Outcome vs. delivery state** — two distinct ideas, each with its own predicates (`ok?` vs. `delivered?`/`pending?`/`failed?`), never conflated.
+- **100% test & documentation coverage, enforced in CI** across Ruby 3.2–4.0.
+
+## What's covered
+
+The full SMS.ru API, mapped to an idiomatic Ruby surface:
+
+| Capability | Method |
+| --- | --- |
+| Send — single, bulk, or per-number text | `client.deliver` |
+| Price a message before sending | `client.cost` |
+| Delivery status, with state predicates | `client.status` |
+| Verify by flash call (outbound) | `client.call` |
+| Verify by callcheck (inbound) | `client.callcheck` |
+| Balance, limits, free limit, senders | `client.my` |
+| Validate credentials | `client.auth.ok?` |
+| Stoplist — add, remove, list | `client.stoplist` |
+| Webhook URLs — add, remove, list | `client.callbacks` |
+| Parse & verify incoming webhooks | `SmsRu::Webhook` |
 
 ## Table of contents
 
+- [Why smsru_ruby?](#why-smsru_ruby)
+- [What's covered](#whats-covered)
 - [Supported Ruby versions](#supported-ruby-versions)
 - [Installation](#installation)
 - [Quick start](#quick-start)
@@ -258,6 +286,7 @@ acknowledge it by replying with the string `"100"`:
 
 ```ruby
 # Reject forged callbacks: SMS.ru signs every payload with your api_id.
+# The check is constant-time (timing-attack safe).
 unless SmsRu::Webhook.valid?(params["data"], params["hash"], "YOUR_API_ID")
   return head(:forbidden)
 end
@@ -311,10 +340,18 @@ reported on each `SmsRu::Sms` in `result.messages` (see above).
 ## Development
 
 ```sh
-bin/setup          # install dependencies
-bundle exec rake   # run RuboCop + the test suite
-bin/console        # an IRB session with the gem loaded
+bin/setup            # install dependencies
+bundle exec rake     # run RuboCop, validate RBS signatures, and the test suite
+bundle exec rake steep        # type-check lib/ against sig/ (Steep, strict diagnostics)
+bundle exec rake steep:stats  # report type coverage (typed % per file)
+bundle exec rake rbs:test     # run the suite verifying real values against the signatures
+bin/console          # an IRB session with the gem loaded
 ```
+
+The signatures are held to their own standard: Steep runs under its **strict**
+diagnostics (no implicit `untyped`, no unannotated collections) with the public
+API fully typed, and `rbs:test` checks that the values flowing through the suite
+actually match `sig/` at runtime — so the types can't drift from the code.
 
 ## Recording test cassettes
 
