@@ -6,8 +6,8 @@
 A modern, dependency-free Ruby client for the [SMS.ru](https://sms.ru) HTTP API.
 
 It is a clean, idiomatic Ruby port of the official [SMS.ru PHP library](https://sms.ru/php):
-send single or bulk SMS, schedule delivery, check cost and delivery status, request
-verify users by phone call, inspect your balance/limits/senders, manage the stoplist, and
+send single or bulk SMS, schedule delivery, check cost and delivery status, verify
+users by phone call, inspect your balance/limits/senders, manage the stoplist, and
 register delivery callbacks — all returning typed, immutable result objects and
 raising typed errors.
 

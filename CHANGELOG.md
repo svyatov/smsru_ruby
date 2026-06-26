@@ -4,30 +4,29 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-Versioning tracks the official SMS.ru PHP library.
 
 ## [Unreleased]
 
-## [1.2.0] - 2026-06-25
+## [1.0.0] - 2026-06-26
 
-### Added
+First public release. A Ruby port of the official SMS.ru PHP library covering the
+same API, reworked to be idiomatic Ruby. How it differs from the original:
 
-- Initial release: a modern, dependency-free Ruby port of the official SMS.ru PHP library.
-- `SmsRu#deliver` — send to one number, many numbers (same text), or a Hash of
-  `number => text` pairs; with `from`, `time`, `ttl`, `daytime`, `translit`,
-  `test`, `ip`, and `partner_id` options.
-- `SmsRu#cost`, `#status`, `#call` (flash-call verification; `ip`/`partner_id` options).
-- Account info via `SmsRu#my` (`#balance` → Float, `#limit`, `#free_limit`,
-  `#senders`); `Limit`/`FreeLimit` expose integer counters and `#available_today`.
-- Credential check via `SmsRu#auth` (`#ok?`).
-- Stoplist management via `SmsRu#stoplist` (`#add`, `#remove`, `#list`).
-- Callback (webhook) URL management via `SmsRu#callbacks` (`#add`, `#remove`,
-  `#list`); inbound payload parsing with `SmsRu::Webhook.parse`, returning typed
-  events (`SmsRu::Events::SmsStatus`, `CallcheckStatus`, `Test`, `Unknown`), and
-  signature verification with `SmsRu::Webhook.valid?`.
-- Authorize-by-incoming-call (callcheck) via `SmsRu#callcheck` (`#add`, `#status`).
-- Typed, immutable result objects and a typed error hierarchy under `SmsRu::Error`.
-- Configurable `timeout`, global `test` mode, and `retries` (TLS always verified).
+- **Idiomatic, namespaced API** instead of flat `get_*`/`add_*` methods: account
+  reads under `client.my` (`#balance`, `#limit`, `#free_limit`, `#senders`),
+  credential check via `client.auth.ok?`, plus `client.stoplist`,
+  `client.callbacks`, and `client.callcheck` sub-resources. Keyword arguments for
+  every optional send parameter.
+- **Typed, immutable `Data` results** with predicate and DX helpers (`#ok?`,
+  `#delivered?`, `#confirmed?`, `#available_today`) instead of raw decoded JSON.
+- **Typed error hierarchy** under `SmsRu::Error` (`AuthError`,
+  `InsufficientFundsError`, `ResponseError`, `ConnectionError`) — errors are
+  raised, not returned as status codes you have to inspect.
+- **First-class inbound webhooks**: `SmsRu::Webhook.parse` decodes the callback
+  POST into typed events (`SmsRu::Events::SmsStatus`, `CallcheckStatus`, `Test`,
+  `Unknown`), and `SmsRu::Webhook.valid?` verifies the signature.
+- **Zero runtime dependencies** (Ruby stdlib only, no curl), TLS verified by
+  default, with configurable `timeout`, `retries`, and global `test` mode.
 
-[Unreleased]: https://github.com/svyatov/smsru_ruby/compare/v1.2.0...HEAD
-[1.2.0]: https://github.com/svyatov/smsru_ruby/releases/tag/v1.2.0
+[Unreleased]: https://github.com/svyatov/smsru_ruby/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/svyatov/smsru_ruby/releases/tag/v1.0.0

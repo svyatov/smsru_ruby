@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = "Modern, dependency-free Ruby client for the SMS.ru API."
   spec.description = "A modern, dependency-free Ruby client for the SMS.ru HTTP API. Send single or bulk SMS, " \
-                     "schedule delivery, check cost and delivery status, request call-password codes, inspect " \
+                     "schedule delivery, check cost and delivery status, verify users by phone call, inspect " \
                      "balance/limits/senders, manage the stoplist, and register delivery callbacks."
   spec.homepage = "https://github.com/svyatov/smsru_ruby"
   spec.license = "MIT"
