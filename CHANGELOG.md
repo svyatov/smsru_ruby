@@ -18,7 +18,10 @@ same API, reworked to be idiomatic Ruby. How it differs from the original:
   `client.callbacks`, and `client.callcheck` sub-resources. Keyword arguments for
   every optional send parameter.
 - **Typed, immutable `Data` results** with predicate and DX helpers (`#ok?`,
-  `#delivered?`, `#confirmed?`, `#available_today`) instead of raw decoded JSON.
+  `#delivered?`/`#pending?`/`#failed?`, `#confirmed?`, `#available_today`),
+  `SendResult#ok`/`#failed`/`#[]` partition helpers, and named delivery-status
+  constants under `SmsRu::Statuses` (`DELIVERED`, `EXPIRED`, …) — instead of raw
+  decoded JSON and magic numbers.
 - **Typed error hierarchy** under `SmsRu::Error` (`AuthError`,
   `InsufficientFundsError`, `ResponseError`, `ConnectionError`) — errors are
   raised, not returned as status codes you have to inspect.

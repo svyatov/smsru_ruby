@@ -6,6 +6,7 @@ require "openssl"
 
 require_relative "sms_ru/version"
 require_relative "sms_ru/errors"
+require_relative "sms_ru/statuses"
 require_relative "sms_ru/data"
 require_relative "sms_ru/events"
 require_relative "sms_ru/webhook"

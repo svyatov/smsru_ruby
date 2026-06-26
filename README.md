@@ -131,6 +131,11 @@ result.messages.each do |sms|
     puts "#{sms.phone}: failed (#{sms.status_code}) #{sms.status_text}"
   end
 end
+
+# Or use the partition helpers:
+result.ok                      # => [SmsRu::Sms, ...] accepted recipients
+result.failed                  # => [SmsRu::Sms, ...] rejected recipients
+result["79991234567"]          # => the SmsRu::Sms for that number (or nil)
 ```
 
 ## Cost and status
@@ -146,8 +151,18 @@ status = client.status("000000-10000000")
 status.status_code  # => 103
 status.status_text  # => "Сообщение доставлено"
 
+# State predicates instead of memorizing codes:
+status.delivered?   # => true  (code 103)
+status.pending?     # => false (codes 100–102, still in transit)
+status.failed?      # => false (codes 104–108, 150)
+
 statuses = client.status(["000000-10000000", "000000-10000001"]) # => [SmsRu::Status, ...]
 ```
+
+Every code has a named constant under `SmsRu::Statuses` (e.g.
+`SmsRu::Statuses::DELIVERED == 103`, `::EXPIRED`, `::READ`) for the cases the
+three predicates don't cover. The same predicates are available on
+`SmsRu::Events::SmsStatus` from webhook payloads.
 
 ## Verify by phone call
 

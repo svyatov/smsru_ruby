@@ -38,6 +38,21 @@ class DataTest < Minitest::Test
     assert_empty result.messages
   end
 
+  def test_send_result_partitions_and_indexes_recipients
+    result = SmsRu::SendResult.build(
+      "status" => "OK", "status_code" => 100, "balance" => 1.0,
+      "sms" => {
+        "79991111111" => { "status" => "OK", "status_code" => 100, "sms_id" => "1" },
+        "79992222222" => { "status" => "ERROR", "status_code" => 207 }
+      }
+    )
+
+    assert_equal ["79991111111"], result.ok.map(&:phone)
+    assert_equal ["79992222222"], result.failed.map(&:phone)
+    assert_equal "1", result["79991111111"].sms_id
+    assert_nil result["70000000000"]
+  end
+
   def test_cost_build
     hash = {
       "status" => "OK", "status_code" => 100, "total_cost" => 1.74, "total_sms" => 2,
@@ -66,6 +81,23 @@ class DataTest < Minitest::Test
     assert_equal "000000-000001", statuses.first.sms_id
     assert_equal 103, statuses.first.status_code
     assert_predicate statuses.first, :ok?
+  end
+
+  def test_status_state_predicates
+    assert_equal 103, SmsRu::Statuses::DELIVERED
+
+    delivered = SmsRu::Status.build("1", "status" => "OK", "status_code" => SmsRu::Statuses::DELIVERED)
+    pending   = SmsRu::Status.build("2", "status" => "OK", "status_code" => SmsRu::Statuses::IN_TRANSIT)
+    failed    = SmsRu::Status.build("3", "status" => "OK", "status_code" => SmsRu::Statuses::REJECTED)
+    read      = SmsRu::Status.build("4", "status" => "OK", "status_code" => SmsRu::Statuses::READ)
+
+    assert_predicate delivered, :delivered?
+    assert_predicate pending, :pending?
+    assert_predicate failed, :failed?
+    refute_predicate delivered, :pending?
+    refute_predicate failed, :delivered?
+    # READ (110) is a known terminal state but deliberately in no group.
+    refute(read.delivered? || read.pending? || read.failed?)
   end
 
   def test_scalar_builds_coerce_to_integers_and_compute_available

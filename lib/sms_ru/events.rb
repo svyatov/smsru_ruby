@@ -15,11 +15,10 @@ class SmsRu
     # @!attribute [r] raw
     #   @return [Array<String>] every line of the original record
     SmsStatus = Data.define(:id, :status_code, :created_at, :raw) do
+      include DeliveryStatus
+
       # @return [String] the wire record type
       def type = "sms_status"
-
-      # @return [Boolean] true once the message is delivered (status code 103)
-      def delivered? = status_code == 103
     end
 
     # A call-authorization notification (record type "callcheck_status").

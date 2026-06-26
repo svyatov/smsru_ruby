@@ -13,6 +13,7 @@ class WebhookTest < Minitest::Test
     assert_predicate events.first, :delivered?
     assert_equal Time.at(1_782_469_893), events.first.created_at
     refute_predicate events.last, :delivered? # 104
+    assert_predicate events.last, :failed?    # 104 = TTL expired
   end
 
   def test_parse_callcheck_status_record

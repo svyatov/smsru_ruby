@@ -47,6 +47,16 @@ class SmsRu
       messages = (hash["sms"] || {}).map { |phone, sms| Sms.build(phone, sms) }
       new(status_code: hash["status_code"], balance: hash["balance"], messages: messages)
     end
+
+    # @return [Array<SmsRu::Sms>] the recipients SMS.ru accepted
+    def ok = messages.select(&:ok?)
+
+    # @return [Array<SmsRu::Sms>] the recipients SMS.ru rejected
+    def failed = messages.reject(&:ok?)
+
+    # @param phone [String] a recipient number
+    # @return [SmsRu::Sms, nil] that recipient's result, or nil if absent
+    def [](phone) = messages.find { |sms| sms.phone == phone }
   end
 
   # Delivery status of one message (one entry of a /sms/status response).
@@ -62,6 +72,8 @@ class SmsRu
   # @!attribute [r] status_text
   #   @return [String, nil] the human-readable status text, when present
   Status = Data.define(:sms_id, :status, :status_code, :cost, :status_text) do
+    include DeliveryStatus
+
     # @param sms_id [String] the message id
     # @param hash [Hash] one entry of the response `sms` object
     # @return [SmsRu::Status]
