@@ -18,11 +18,16 @@ class SmsRu
   # @param timeout [Integer] open/read timeout in seconds
   # @param test    [Boolean] when true, every deliver defaults to test mode (no charge)
   # @param retries [Integer] retry attempts on transport failure (0 disables; PHP default is 5)
-  def initialize(api_id, timeout: 30, test: false, retries: 5)
+  # @param from    [String, nil] default sender name for #deliver (overridable per call)
+  # @param logger  [Logger, nil] optional logger; logs the request path and transport
+  #   failures only — never the api_id, phone numbers, or message text
+  def initialize(api_id, timeout: 30, test: false, retries: 5, from: nil, logger: nil)
     @api_id = api_id
     @timeout = timeout
     @test = test
     @retries = retries
+    @from = from
+    @logger = logger
   end
 
   # Sends a message.
@@ -50,7 +55,7 @@ class SmsRu
   #   client.deliver({ "79991234567" => "Hi Alice", "79991234568" => "Hi Bob" })
   def deliver(to, text = nil, from: nil, time: nil, ttl: nil, daytime: false,
               translit: false, test: nil, ip: nil, partner_id: nil)
-    params = { from:, time:, ttl:, ip:, partner_id: }.compact
+    params = { from: from || @from, time:, ttl:, ip:, partner_id: }.compact
     params[:translit] = 1 if translit
     params[:daytime] = 1 if daytime
     params[:test] = 1 if test.nil? ? @test : test
@@ -128,6 +133,7 @@ class SmsRu
 
   def request(path, **params)
     params[:api_id] = @api_id unless params[:api_id] == "none"
+    @logger&.debug("[SmsRu] POST #{path}")
     uri = URI("#{BASE_URL}#{path}?json=1")
     perform(uri, URI.encode_www_form(params))
   end
@@ -139,6 +145,7 @@ class SmsRu
       response = http(uri).post(uri.request_uri, body, "Content-Type" => "application/x-www-form-urlencoded")
       parse(response.body)
     rescue *RETRIABLE => e
+      @logger&.warn("[SmsRu] #{uri.path} failed (attempt #{attempts}): #{e.message}")
       retry if attempts <= @retries
 
       raise ConnectionError, "Cannot reach SMS.ru: #{e.message}"

@@ -73,14 +73,20 @@ Get your `api_id` in the SMS.ru dashboard under
 ```ruby
 SmsRu.new(
   "YOUR_API_ID",
-  timeout: 30,   # open/read timeout in seconds (default: 30)
-  test: false,   # when true, every `deliver` defaults to test mode (no charge)
-  retries: 5     # retries on transport failure; 0 disables (default: 5, matching the PHP lib)
+  timeout: 30,        # open/read timeout in seconds (default: 30)
+  test: false,        # when true, every `deliver` defaults to test mode (no charge)
+  retries: 5,         # retries on transport failure; 0 disables (default: 5, matching the PHP lib)
+  from: "MyCompany",  # default sender name for `deliver` (override per call)
+  logger: Logger.new($stdout) # optional; logs the request path + transport failures
 )
 ```
 
 Retries apply only to transport-level problems (timeouts, refused connections).
 API errors are never retried — they are raised immediately.
+
+`from` is a per-client default so you don't repeat your sender name on every call;
+a per-call `from:` always wins. The `logger` logs only the request path and
+transport failures — never your `api_id`, phone numbers, or message text.
 
 ## Sending messages
 

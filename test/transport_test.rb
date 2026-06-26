@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "logger"
+require "stringio"
 
 # Deterministic HTTP behavior that cannot be (or need not be) recorded from the
 # live API: transport failures, retries, error-code mapping, and request shape.
@@ -200,5 +202,39 @@ class TransportTest < Minitest::Test
     SmsRu.new("api-id", test: true).deliver("79991234567", "hi", test: false)
 
     assert_requested(:post, SEND_URL) { |req| !URI.decode_www_form(req.body).to_h.key?("test") }
+  end
+
+  def test_client_default_from_is_applied
+    stub_request(:post, SEND_URL).to_return(body: OK_SEND)
+    SmsRu.new("api-id", from: "Acme").deliver("79991234567", "hi")
+
+    assert_requested(:post, SEND_URL) { |req| URI.decode_www_form(req.body).to_h["from"] == "Acme" }
+  end
+
+  def test_per_call_from_overrides_client_default
+    stub_request(:post, SEND_URL).to_return(body: OK_SEND)
+    SmsRu.new("api-id", from: "Acme").deliver("79991234567", "hi", from: "Other")
+
+    assert_requested(:post, SEND_URL) { |req| URI.decode_www_form(req.body).to_h["from"] == "Other" }
+  end
+
+  def test_logger_records_request_path_but_not_secrets
+    io = StringIO.new
+    client = SmsRu.new("secret-api-id", logger: Logger.new(io))
+    stub_request(:post, BALANCE_URL).to_return(body: OK_BALANCE)
+
+    client.my.balance
+
+    assert_includes io.string, "/my/balance"
+    refute_includes io.string, "secret-api-id"
+  end
+
+  def test_logger_warns_on_transport_failure
+    io = StringIO.new
+    client = SmsRu.new("api-id", retries: 0, logger: Logger.new(io))
+    stub_request(:post, BALANCE_URL).to_timeout
+
+    assert_raises(SmsRu::ConnectionError) { client.my.balance }
+    assert_match(/failed/, io.string)
   end
 end

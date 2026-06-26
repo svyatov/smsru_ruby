@@ -16,7 +16,7 @@ same API, reworked to be idiomatic Ruby. How it differs from the original:
   reads under `client.my` (`#balance`, `#limit`, `#free_limit`, `#senders`),
   credential check via `client.auth.ok?`, plus `client.stoplist`,
   `client.callbacks`, and `client.callcheck` sub-resources. Keyword arguments for
-  every optional send parameter.
+  every optional send parameter, plus a per-client `from` default.
 - **Typed, immutable `Data` results** with predicate and DX helpers (`#ok?`,
   `#delivered?`/`#pending?`/`#failed?`, `#confirmed?`, `#available_today`),
   `SendResult#ok`/`#failed`/`#[]` partition helpers, and named delivery-status
@@ -29,7 +29,8 @@ same API, reworked to be idiomatic Ruby. How it differs from the original:
   POST into typed events (`SmsRu::Events::SmsStatus`, `CallcheckStatus`, `Test`,
   `Unknown`), and `SmsRu::Webhook.valid?` verifies the signature.
 - **Zero runtime dependencies** (Ruby stdlib only, no curl), TLS verified by
-  default, with configurable `timeout`, `retries`, and global `test` mode.
+  default, with configurable `timeout`, `retries`, global `test` mode, and an
+  optional `logger`.
 
 [Unreleased]: https://github.com/svyatov/smsru_ruby/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/svyatov/smsru_ruby/releases/tag/v1.0.0
