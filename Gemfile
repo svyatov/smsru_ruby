@@ -14,6 +14,9 @@ gem "webmock", "~> 3.26"
 
 gem "rubocop", "~> 1.88"
 gem "rubocop-minitest", "~> 0.39"
+# rubocop's `parallel` dep: 2.x requires Ruby >= 3.3, but the gem still supports
+# 3.2. Pin below 2.0 so `bundle install` resolves on the 3.2 CI row.
+gem "parallel", "< 2", require: false
 
 gem "rbs", "~> 4.0", require: false
 gem "steep", "~> 2.0", require: false
