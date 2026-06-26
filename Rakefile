@@ -66,4 +66,13 @@ namespace :vcr do
   end
 end
 
+# `rake release` (from bundler/gem_tasks) pushes the gem to RubyGems, which
+# requires an MFA OTP. Feed it a fresh code from 1Password via GEM_HOST_OTP_CODE,
+# which `gem push` reads. Needs `op` signed in (interactive/desktop session).
+Rake::Task["release:rubygem_push"].enhance(["fetch_otp"])
+
+task :fetch_otp do
+  ENV["GEM_HOST_OTP_CODE"] = `op item get "RubyGems" --account my --otp`.strip
+end
+
 task default: %i[rubocop rbs test]
