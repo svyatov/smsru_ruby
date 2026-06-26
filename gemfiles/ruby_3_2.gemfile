@@ -1,0 +1,9 @@
+# frozen_string_literal: true
+
+# Dependency set for Ruby 3.2 (the gem's minimum supported version). It reuses
+# the root Gemfile and only pins gems whose latest majors dropped 3.2, so modern
+# Rubies keep getting up-to-date libs from the root Gemfile while the 3.2 CI row
+# uses this one (via BUNDLE_GEMFILE) with its own lockfile.
+eval_gemfile File.expand_path("../Gemfile", __dir__)
+
+gem "parallel", "< 2" # 2.x requires Ruby >= 3.3
