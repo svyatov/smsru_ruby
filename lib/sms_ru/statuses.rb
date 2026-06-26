@@ -42,9 +42,9 @@ class SmsRu
     def delivered? = status_code == Statuses::DELIVERED
 
     # @return [Boolean] true while the message is still in transit (codes 100–102)
-    def pending? = Statuses::PENDING.include?(status_code)
+    def pending? = !status_code.nil? && Statuses::PENDING.include?(status_code)
 
     # @return [Boolean] true when the message will not be delivered (codes 104–108, 150)
-    def failed? = Statuses::FAILED.include?(status_code)
+    def failed? = !status_code.nil? && Statuses::FAILED.include?(status_code)
   end
 end

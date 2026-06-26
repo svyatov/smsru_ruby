@@ -15,6 +15,9 @@ gem "webmock", "~> 3.26"
 gem "rubocop", "~> 1.88"
 gem "rubocop-minitest", "~> 0.39"
 
+gem "rbs", "~> 4.0", require: false
+gem "steep", "~> 2.0", require: false
+
 gem "yard", "~> 0.9", require: false
 
 gem "simplecov", "~> 0.22", require: false

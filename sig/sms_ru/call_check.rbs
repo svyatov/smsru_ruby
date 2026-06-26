@@ -1,0 +1,10 @@
+class SmsRu
+  # Authorizes a user by an incoming call from their own number.
+  class CallCheck
+    @request: _Request
+
+    def initialize: (_Request request) -> void
+    def add: (String | Integer phone) -> CallCheckResult
+    def status: (String | Integer check_id) -> CallCheckStatus
+  end
+end

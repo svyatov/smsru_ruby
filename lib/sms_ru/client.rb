@@ -73,6 +73,7 @@ class SmsRu
   # @example
   #   client.cost("79991234567", "How much?").total_cost
   def cost(to, text = nil, translit: false)
+    # @type var params: Hash[Symbol, untyped]
     params = { to: Array(to).join(","), text: text }.compact
     params[:translit] = 1 if translit
     Cost.build(request("/sms/cost", **params))
@@ -122,7 +123,7 @@ class SmsRu
     if to.is_a?(Hash)
       raise ArgumentError, "do not pass `text` when `to` is a Hash of number => text" unless text.nil?
 
-      to.each { |phone, message| params["multi[#{phone}]"] = message }
+      to.each { |phone, message| params[:"multi[#{phone}]"] = message }
     else
       raise ArgumentError, "`text` is required" if text.nil?
 
@@ -132,9 +133,9 @@ class SmsRu
   end
 
   def request(path, **params)
-    params[:api_id] = @api_id unless params[:api_id] == "none"
+    params[:api_id] = @api_id unless Coerce.string(params[:api_id]) == "none"
     @logger&.debug("[SmsRu] POST #{path}")
-    uri = URI("#{BASE_URL}#{path}?json=1")
+    uri = URI("#{BASE_URL}#{path}?json=1") #: URI::HTTP
     perform(uri, URI.encode_www_form(params))
   end
 
@@ -145,15 +146,17 @@ class SmsRu
       response = http(uri).post(uri.request_uri, body, "Content-Type" => "application/x-www-form-urlencoded")
       parse(response.body)
     rescue *RETRIABLE => e
-      @logger&.warn("[SmsRu] #{uri.path} failed (attempt #{attempts}): #{e.message}")
+      error = e #: StandardError
+      @logger&.warn("[SmsRu] #{uri.path} failed (attempt #{attempts}): #{error.message}")
       retry if attempts <= @retries
 
-      raise ConnectionError, "Cannot reach SMS.ru: #{e.message}"
+      raise ConnectionError, "Cannot reach SMS.ru: #{error.message}"
     end
   end
 
   def http(uri)
-    http = Net::HTTP.new(uri.host, uri.port)
+    host = uri.host #: String
+    http = Net::HTTP.new(host, uri.port)
     http.use_ssl = true
     http.open_timeout = @timeout
     http.read_timeout = @timeout
@@ -161,9 +164,10 @@ class SmsRu
   end
 
   def parse(raw)
-    data = JSON.parse(raw.to_s)
-    raise ConnectionError, "Malformed response from SMS.ru" unless data.is_a?(Hash) && data["status"]
-    return data if data["status"] == "OK"
+    data = Coerce.records(JSON.parse(raw.to_s))
+    status = Coerce.string(data["status"])
+    raise ConnectionError, "Malformed response from SMS.ru" unless status
+    return data if status == "OK"
 
     raise error_for(data)
   rescue JSON::ParserError
@@ -171,9 +175,9 @@ class SmsRu
   end
 
   def error_for(data)
-    code = data["status_code"]
-    text = data["status_text"] || "SMS.ru returned an error"
-    error_class(code).new(code: code, text: text)
+    code = Coerce.integer(data["status_code"])
+    text = Coerce.string(data["status_text"]) || "SMS.ru returned an error"
+    error_class(code).new(code: code || 0, text: text)
   end
 
   def error_class(code)

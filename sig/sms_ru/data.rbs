@@ -1,0 +1,141 @@
+class SmsRu
+  # Self-type element for MessageCollection: each entry responds to #ok?.
+  interface _OkItem
+    def ok?: () -> bool
+  end
+
+  # Self-type host for MessageCollection: exposes a `messages` array of _OkItem.
+  interface _MessageHost[E]
+    def messages: () -> Array[E]
+  end
+
+  # Collection helpers shared by results wrapping a `messages` array.
+  module MessageCollection[E < _OkItem] : _MessageHost[E]
+    def ok?: () -> bool
+    def ok: () -> Array[E]
+    def failed: () -> Array[E]
+  end
+
+  # A single message inside a send response.
+  class Sms
+    attr_reader phone: String
+    attr_reader sms_id: String?
+    attr_reader error_code: Integer?
+    attr_reader error_text: String?
+
+    def initialize: (phone: String, sms_id: String?, error_code: Integer?, error_text: String?) -> void
+    def self.build: (String phone, Hash[String, untyped] hash) -> Sms
+    def ok?: () -> bool
+  end
+
+  # Result of SmsRu#deliver.
+  class SendResult
+    include MessageCollection[Sms]
+
+    attr_reader balance: Float
+    attr_reader messages: Array[Sms]
+
+    def initialize: (balance: Float, messages: Array[Sms]) -> void
+    def self.build: (Hash[String, untyped] hash) -> SendResult
+  end
+
+  # Delivery status of one message.
+  class Status
+    include DeliveryStatus
+
+    attr_reader sms_id: String
+    attr_reader status_code: Integer
+    attr_reader status_text: String?
+    attr_reader cost: Float?
+
+    def initialize: (sms_id: String, status_code: Integer, status_text: String?, cost: Float?) -> void
+    def self.build: (String sms_id, Hash[String, untyped] hash) -> Status
+    def self.build_all: (Hash[String, untyped] hash) -> Array[Status]
+    def found?: () -> bool
+  end
+
+  # Per-recipient cost (one entry of a /sms/cost response).
+  class CostItem
+    attr_reader phone: String
+    attr_reader cost: Float?
+    attr_reader sms_count: Integer?
+    attr_reader error_code: Integer?
+    attr_reader error_text: String?
+
+    def initialize: (phone: String, cost: Float?, sms_count: Integer?, error_code: Integer?, error_text: String?) -> void
+    def self.build: (String phone, Hash[String, untyped] hash) -> CostItem
+    def ok?: () -> bool
+  end
+
+  # Result of SmsRu#cost.
+  class Cost
+    include MessageCollection[CostItem]
+
+    attr_reader total_cost: Float
+    attr_reader total_sms: Integer
+    attr_reader messages: Array[CostItem]
+
+    def initialize: (total_cost: Float, total_sms: Integer, messages: Array[CostItem]) -> void
+    def self.build: (Hash[String, untyped] hash) -> Cost
+  end
+
+  # Result of SmsRu#call (flash call).
+  class Call
+    attr_reader code: String
+    attr_reader call_id: String
+    attr_reader cost: Float
+    attr_reader balance: Float
+
+    def initialize: (code: String, call_id: String, cost: Float, balance: Float) -> void
+    def self.build: (Hash[String, untyped] hash) -> Call
+  end
+
+  # Result of SmsRu::My#limit (daily sending limit).
+  class Limit
+    attr_reader total_limit: Integer
+    attr_reader used_today: Integer
+
+    def initialize: (total_limit: Integer, used_today: Integer) -> void
+    def self.build: (Hash[String, untyped] hash) -> Limit
+    def available_today: () -> Integer
+  end
+
+  # Result of SmsRu::My#free_limit (free daily messages).
+  class FreeLimit
+    attr_reader total_free: Integer
+    attr_reader used_today: Integer
+
+    def initialize: (total_free: Integer, used_today: Integer) -> void
+    def self.build: (Hash[String, untyped] hash) -> FreeLimit
+    def available_today: () -> Integer
+  end
+
+  # Result of SmsRu::CallCheck#add.
+  class CallCheckResult
+    attr_reader check_id: String
+    attr_reader call_phone: String
+    attr_reader call_phone_pretty: String
+    attr_reader call_phone_html: String
+
+    def initialize: (check_id: String, call_phone: String, call_phone_pretty: String, call_phone_html: String) -> void
+    def self.build: (Hash[String, untyped] hash) -> CallCheckResult
+  end
+
+  # Result of SmsRu::CallCheck#status.
+  class CallCheckStatus
+    attr_reader status_code: Integer
+    attr_reader status_text: String?
+
+    def initialize: (status_code: Integer, status_text: String?) -> void
+    def self.build: (Hash[String, untyped] hash) -> CallCheckStatus
+    def confirmed?: () -> bool
+  end
+
+  # One stoplist entry returned by SmsRu::Stoplist#list.
+  class StoplistEntry
+    attr_reader phone: String
+    attr_reader note: String
+
+    def initialize: (phone: String, note: String) -> void
+  end
+end

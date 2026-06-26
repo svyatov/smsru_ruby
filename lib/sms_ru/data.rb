@@ -27,17 +27,17 @@ class SmsRu
   #   @return [Integer, nil] the rejection code, or nil when accepted
   # @!attribute [r] error_text
   #   @return [String, nil] the rejection reason, or nil when accepted
-  Sms = Data.define(:phone, :sms_id, :error_code, :error_text) do
+  class Sms < Data.define(:phone, :sms_id, :error_code, :error_text)
     # @param phone [String] the recipient's phone number
     # @param hash [Hash] one entry of the response `sms` object
     # @return [SmsRu::Sms]
     def self.build(phone, hash)
-      ok = hash["status"] == "OK"
+      ok = Coerce.string(hash["status"]) == "OK"
       new(
-        phone: phone,
-        sms_id: hash["sms_id"],
-        error_code: ok ? nil : hash["status_code"],
-        error_text: ok ? nil : hash["status_text"]
+        phone: String(phone),
+        sms_id: Coerce.string(hash["sms_id"]),
+        error_code: ok ? nil : Coerce.integer(hash["status_code"]),
+        error_text: ok ? nil : Coerce.string(hash["status_text"])
       )
     end
 
@@ -53,14 +53,14 @@ class SmsRu
   #   @return [Float] the account balance after the request
   # @!attribute [r] messages
   #   @return [Array<SmsRu::Sms>] one entry per recipient
-  SendResult = Data.define(:balance, :messages) do
+  class SendResult < Data.define(:balance, :messages)
     include MessageCollection
 
     # @param hash [Hash] the parsed /sms/send response
     # @return [SmsRu::SendResult]
     def self.build(hash)
-      messages = (hash["sms"] || {}).map { |phone, sms| Sms.build(phone, sms) }
-      new(balance: hash["balance"], messages: messages)
+      messages = Coerce.records(hash["sms"]).map { |phone, sms| Sms.build(phone, sms) }
+      new(balance: Coerce.float(hash["balance"]) || 0.0, messages: messages)
     end
   end
 
@@ -76,7 +76,7 @@ class SmsRu
   #   @return [String, nil] the human-readable delivery state, when present
   # @!attribute [r] cost
   #   @return [Float, nil] the message cost, when present
-  Status = Data.define(:sms_id, :status_code, :status_text, :cost) do
+  class Status < Data.define(:sms_id, :status_code, :status_text, :cost)
     include DeliveryStatus
 
     # @param sms_id [String] the message id
@@ -84,16 +84,16 @@ class SmsRu
     # @return [SmsRu::Status]
     def self.build(sms_id, hash)
       new(
-        sms_id: sms_id,
-        status_code: hash["status_code"],
-        status_text: hash["status_text"],
-        cost: hash["cost"]
+        sms_id: String(sms_id),
+        status_code: Coerce.integer(hash["status_code"]) || Statuses::NOT_FOUND,
+        status_text: Coerce.string(hash["status_text"]),
+        cost: Coerce.float(hash["cost"])
       )
     end
 
     # @param hash [Hash] the parsed /sms/status response
     # @return [Array<SmsRu::Status>] one Status per requested id
-    def self.build_all(hash) = (hash["sms"] || {}).map { |sms_id, sms| build(sms_id, sms) }
+    def self.build_all(hash) = Coerce.records(hash["sms"]).map { |sms_id, sms| build(sms_id, sms) }
 
     # @return [Boolean] true when the queried id exists (not status code -1)
     def found? = status_code != Statuses::NOT_FOUND
@@ -112,18 +112,18 @@ class SmsRu
   #   @return [Integer, nil] the error code, or nil when priced
   # @!attribute [r] error_text
   #   @return [String, nil] the error reason, or nil when priced
-  CostItem = Data.define(:phone, :cost, :sms_count, :error_code, :error_text) do
+  class CostItem < Data.define(:phone, :cost, :sms_count, :error_code, :error_text)
     # @param phone [String] the recipient's phone number
     # @param hash [Hash] one entry of the response `sms` object
     # @return [SmsRu::CostItem]
     def self.build(phone, hash)
-      ok = hash["status"] == "OK"
+      ok = Coerce.string(hash["status"]) == "OK"
       new(
-        phone: phone,
-        cost: hash["cost"],
-        sms_count: hash["sms"],
-        error_code: ok ? nil : hash["status_code"],
-        error_text: ok ? nil : hash["status_text"]
+        phone: String(phone),
+        cost: Coerce.float(hash["cost"]),
+        sms_count: Coerce.integer(hash["sms"]),
+        error_code: ok ? nil : Coerce.integer(hash["status_code"]),
+        error_text: ok ? nil : Coerce.string(hash["status_text"])
       )
     end
 
@@ -139,14 +139,18 @@ class SmsRu
   #   @return [Integer] the total number of SMS segments
   # @!attribute [r] messages
   #   @return [Array<SmsRu::CostItem>] one entry per recipient
-  Cost = Data.define(:total_cost, :total_sms, :messages) do
+  class Cost < Data.define(:total_cost, :total_sms, :messages)
     include MessageCollection
 
     # @param hash [Hash] the parsed /sms/cost response
     # @return [SmsRu::Cost]
     def self.build(hash)
-      messages = (hash["sms"] || {}).map { |phone, cost| CostItem.build(phone, cost) }
-      new(total_cost: hash["total_cost"], total_sms: hash["total_sms"], messages: messages)
+      messages = Coerce.records(hash["sms"]).map { |phone, cost| CostItem.build(phone, cost) }
+      new(
+        total_cost: Coerce.float(hash["total_cost"]) || 0.0,
+        total_sms: Coerce.integer(hash["total_sms"]) || 0,
+        messages: messages
+      )
     end
   end
 
@@ -161,11 +165,16 @@ class SmsRu
   #   @return [Float] the price of the call
   # @!attribute [r] balance
   #   @return [Float] the account balance after the call
-  Call = Data.define(:code, :call_id, :cost, :balance) do
+  class Call < Data.define(:code, :call_id, :cost, :balance)
     # @param hash [Hash] the parsed /code/call response
     # @return [SmsRu::Call]
     def self.build(hash)
-      new(code: hash["code"], call_id: hash["call_id"], cost: hash["cost"], balance: hash["balance"])
+      new(
+        code: Coerce.string(hash["code"]) || "",
+        call_id: Coerce.string(hash["call_id"]) || "",
+        cost: Coerce.float(hash["cost"]) || 0.0,
+        balance: Coerce.float(hash["balance"]) || 0.0
+      )
     end
   end
 
@@ -175,10 +184,12 @@ class SmsRu
   #   @return [Integer] the daily limit
   # @!attribute [r] used_today
   #   @return [Integer] the number of messages sent today
-  Limit = Data.define(:total_limit, :used_today) do
+  class Limit < Data.define(:total_limit, :used_today)
     # @param hash [Hash] the parsed /my/limit response
     # @return [SmsRu::Limit]
-    def self.build(hash) = new(total_limit: hash["total_limit"].to_i, used_today: hash["used_today"].to_i)
+    def self.build(hash)
+      new(total_limit: Coerce.integer(hash["total_limit"]) || 0, used_today: Coerce.integer(hash["used_today"]) || 0)
+    end
 
     # @return [Integer] how many more messages can be sent today
     def available_today = total_limit - used_today
@@ -190,10 +201,12 @@ class SmsRu
   #   @return [Integer] the daily allowance of free messages
   # @!attribute [r] used_today
   #   @return [Integer] the number used today (0 when the API omits it)
-  FreeLimit = Data.define(:total_free, :used_today) do
+  class FreeLimit < Data.define(:total_free, :used_today)
     # @param hash [Hash] the parsed /my/free response
     # @return [SmsRu::FreeLimit]
-    def self.build(hash) = new(total_free: hash["total_free"].to_i, used_today: hash["used_today"].to_i)
+    def self.build(hash)
+      new(total_free: Coerce.integer(hash["total_free"]) || 0, used_today: Coerce.integer(hash["used_today"]) || 0)
+    end
 
     # @return [Integer] how many free messages remain today
     def available_today = total_free - used_today
@@ -209,15 +222,15 @@ class SmsRu
   #   @return [String] the same number, formatted for display
   # @!attribute [r] call_phone_html
   #   @return [String] a mobile-clickable `tel:` link for the number
-  CallCheckResult = Data.define(:check_id, :call_phone, :call_phone_pretty, :call_phone_html) do
+  class CallCheckResult < Data.define(:check_id, :call_phone, :call_phone_pretty, :call_phone_html)
     # @param hash [Hash] the parsed /callcheck/add response
     # @return [SmsRu::CallCheckResult]
     def self.build(hash)
       new(
-        check_id: hash["check_id"],
-        call_phone: hash["call_phone"],
-        call_phone_pretty: hash["call_phone_pretty"],
-        call_phone_html: hash["call_phone_html"]
+        check_id: Coerce.string(hash["check_id"]) || "",
+        call_phone: Coerce.string(hash["call_phone"]) || "",
+        call_phone_pretty: Coerce.string(hash["call_phone_pretty"]) || "",
+        call_phone_html: Coerce.string(hash["call_phone_html"]) || ""
       )
     end
   end
@@ -228,10 +241,12 @@ class SmsRu
   #   @return [Integer] the check status code (401 once confirmed)
   # @!attribute [r] status_text
   #   @return [String, nil] the human-readable status, when present
-  CallCheckStatus = Data.define(:status_code, :status_text) do
+  class CallCheckStatus < Data.define(:status_code, :status_text)
     # @param hash [Hash] the parsed /callcheck/status response
     # @return [SmsRu::CallCheckStatus]
-    def self.build(hash) = new(status_code: hash["check_status"], status_text: hash["check_status_text"])
+    def self.build(hash)
+      new(status_code: Coerce.integer(hash["check_status"]) || 0, status_text: Coerce.string(hash["check_status_text"]))
+    end
 
     # @return [Boolean] true once the user has placed the authorizing call
     def confirmed? = status_code == 401
@@ -243,5 +258,6 @@ class SmsRu
   #   @return [String] the stoplisted phone number
   # @!attribute [r] note
   #   @return [String] the note you stored with the number
-  StoplistEntry = Data.define(:phone, :note)
+  class StoplistEntry < Data.define(:phone, :note)
+  end
 end

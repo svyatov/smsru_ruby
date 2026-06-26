@@ -350,8 +350,10 @@ bin/console          # an IRB session with the gem loaded
 ```
 
 The signatures are held to their own standard: Steep runs under its **strict**
-diagnostics (no implicit `untyped`, no unannotated collections) with the public
-API fully typed, and `rbs:test` checks that the values flowing through the suite
+diagnostics (no implicit `untyped`, no unannotated collections) at **100% type
+coverage**, gated in CI. Loosely-typed JSON from SMS.ru (which returns, say,
+`total_limit` as the string `"10"`) is normalized into the declared types at the
+parse boundary, and `rbs:test` checks that the values flowing through the suite
 actually match `sig/` at runtime — so the types can't drift from the code.
 
 ## Recording test cassettes

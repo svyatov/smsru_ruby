@@ -1,0 +1,18 @@
+class SmsRu
+  # Parses the inbound webhook payload SMS.ru POSTs to your callback URL and
+  # verifies its signature.
+  module Webhook
+    type payload = Hash[untyped, untyped] | Array[String] | String | nil
+    type event = Events::SmsStatus | Events::CallcheckStatus | Events::Test | Events::Unknown
+
+    def self.parse: (payload data) -> Array[event]
+    def self.valid?: (payload data, String? hash, String api_id) -> bool
+
+    # @api private helpers. status_fields returns a record so Steep can expand it
+    # into the SmsStatus/CallcheckStatus keyword constructors via `**`.
+    def self.status_fields: (Array[String] lines) -> { id: String, status_code: Integer?, created_at: Time?, raw: Array[String] }
+    def self.entries: (payload data) -> Array[String]
+    def self.int: (String? str) -> Integer?
+    def self.time: (String? str) -> Time?
+  end
+end

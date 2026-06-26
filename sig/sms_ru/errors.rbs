@@ -1,0 +1,25 @@
+class SmsRu
+  # Base class for every error raised by the gem.
+  class Error < StandardError
+  end
+
+  # Raised when SMS.ru cannot be reached or returns an unparseable body.
+  class ConnectionError < Error
+  end
+
+  # Raised when SMS.ru replies with a non-OK status.
+  class ResponseError < Error
+    attr_reader code: Integer
+    attr_reader text: String
+
+    def initialize: (code: Integer, text: String) -> void
+  end
+
+  # Invalid api_id / token / unconfirmed account (codes 200, 300, 301, 302).
+  class AuthError < ResponseError
+  end
+
+  # Not enough money on the account (code 201).
+  class InsufficientFundsError < ResponseError
+  end
+end

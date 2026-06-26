@@ -1,0 +1,11 @@
+class SmsRu
+  # Manages the account stoplist.
+  class Stoplist
+    @request: _Request
+
+    def initialize: (_Request request) -> void
+    def add: (String | Integer phone, ?note: String?) -> bool
+    def remove: (String | Integer phone) -> bool
+    def list: () -> Array[StoplistEntry]
+  end
+end

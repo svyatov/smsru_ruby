@@ -19,8 +19,19 @@ Style/StringLiteralsInInterpolation:
 Naming/PredicateMethod:
   Enabled: false
 
+# The result objects use `class X < Data.define(...)` rather than `X = Data.define(...) do`
+# on purpose: Steep can only type-check Data subclasses written in the inheritance form
+# (it mis-attributes the assignment-block form's methods to the enclosing class).
+Style/DataInheritance:
+  Enabled: false
+
 Layout/LineLength:
   Max: 120
+
+# `#:` / `#[...]` are RBS inline type annotations (e.g. `uri = URI(s) #: URI::HTTP`),
+# not ordinary comments — they must keep the no-space form for Steep to read them.
+Layout/LeadingCommentSpace:
+  AllowRBSInlineAnnotation: true
 
 Metrics/MethodLength:
   Max: 15

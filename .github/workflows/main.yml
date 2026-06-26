@@ -37,6 +37,18 @@ jobs:
       - run: bundle exec rake
         continue-on-error: ${{ matrix.ruby_version == 'ruby-head' }}
 
+      - name: Type check (Steep, strict)
+        run: bundle exec rake steep
+        if: ${{ matrix.ruby_version == '4.0' }}
+
+      - name: Type coverage gate (100%, Steep stats)
+        run: bundle exec rake steep:coverage
+        if: ${{ matrix.ruby_version == '4.0' }}
+
+      - name: Runtime signature check (RBS::Test)
+        run: bundle exec rake rbs:test
+        if: ${{ matrix.ruby_version == '4.0' }}
+
       - name: Documentation coverage
         run: bundle exec rake yard:stats
         if: ${{ matrix.ruby_version == '4.0' }}

@@ -28,7 +28,7 @@ class SmsRu
         when "sms_status"       then Events::SmsStatus.new(**status_fields(lines))
         when "callcheck_status" then Events::CallcheckStatus.new(**status_fields(lines))
         when "test"             then Events::Test.new(created_at: time(lines[1]), raw: lines)
-        else                         Events::Unknown.new(type: lines[0], raw: lines)
+        else                         Events::Unknown.new(type: lines[0].to_s, raw: lines)
         end
       end
     end
@@ -43,14 +43,14 @@ class SmsRu
     def self.valid?(data, hash, api_id)
       return false unless hash.is_a?(String)
 
-      expected = OpenSSL::Digest.hexdigest("SHA256", "#{api_id}#{entries(data).join}")
+      expected = OpenSSL::Digest::SHA256.hexdigest("#{api_id}#{entries(data).join}")
       expected.bytesize == hash.bytesize && OpenSSL.fixed_length_secure_compare(expected, hash)
     end
 
     # Common fields of the "type / id / status / timestamp" status records.
     # @api private
     def self.status_fields(lines)
-      { id: lines[1], status_code: int(lines[2]), created_at: time(lines[3]), raw: lines }
+      { id: lines[1].to_s, status_code: int(lines[2]), created_at: time(lines[3]), raw: lines }
     end
 
     # Normalizes the `data` param to an ordered Array of record strings. SMS.ru
@@ -61,7 +61,7 @@ class SmsRu
     # @param data [Hash, Array<String>, String, nil] the POST "data" parameter
     # @return [Array<String>] the records in the order SMS.ru sent them
     def self.entries(data)
-      data.is_a?(Hash) ? data.sort_by { |k, _| k.to_i }.map(&:last) : Array(data)
+      data.is_a?(Hash) ? data.sort_by { |k, _| Coerce.integer(k) || 0 }.map(&:last) : Array(data)
     end
 
     # Parses an Integer from a webhook line, returning nil for blanks or garbage.

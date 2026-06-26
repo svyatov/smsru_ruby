@@ -1,0 +1,3 @@
+class SmsRu
+  VERSION: String
+end

@@ -1,0 +1,15 @@
+class SmsRu
+  # Manages callback (webhook) URLs that SMS.ru notifies with delivery statuses.
+  class Callbacks
+    @request: _Request
+
+    def initialize: (_Request request) -> void
+    def add: (String url) -> Array[String]
+    def remove: (String url) -> Array[String]
+    def list: () -> Array[String]
+
+    private
+
+    def urls: (Hash[String, untyped] data) -> Array[String]
+  end
+end

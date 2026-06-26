@@ -1,0 +1,35 @@
+class SmsRu
+  # Delivery status codes returned by /sms/status and carried in `sms_status` webhooks.
+  module Statuses
+    NOT_FOUND: Integer
+    QUEUED: Integer
+    SENT_TO_OPERATOR: Integer
+    IN_TRANSIT: Integer
+    DELIVERED: Integer
+    EXPIRED: Integer
+    DELETED: Integer
+    PHONE_FAILURE: Integer
+    UNKNOWN_FAILURE: Integer
+    REJECTED: Integer
+    READ: Integer
+    NO_ROUTE: Integer
+
+    PENDING: Array[Integer]
+    FAILED: Array[Integer]
+  end
+
+  # Self-type for DeliveryStatus: the including object must expose `status_code`.
+  # Nullable so both SmsRu::Status (always present) and SmsRu::Events::SmsStatus
+  # (nil for a malformed webhook line) can include the module; the predicates
+  # nil-guard before the Array#include? lookups.
+  interface _HasStatusCode
+    def status_code: () -> Integer?
+  end
+
+  # Delivery-state predicates shared by SmsRu::Status and SmsRu::Events::SmsStatus.
+  module DeliveryStatus : _HasStatusCode
+    def delivered?: () -> bool
+    def pending?: () -> bool
+    def failed?: () -> bool
+  end
+end

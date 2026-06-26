@@ -1,0 +1,12 @@
+class SmsRu
+  # Account information: balance, daily limit, free quota, approved sender names.
+  class My
+    @request: _Request
+
+    def initialize: (_Request request) -> void
+    def balance: () -> Float
+    def limit: () -> Limit
+    def free_limit: () -> FreeLimit
+    def senders: () -> Array[String]
+  end
+end

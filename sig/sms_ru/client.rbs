@@ -1,0 +1,53 @@
+# Ruby client for the SMS.ru HTTP API (https://sms.ru/api).
+class SmsRu
+  # The client's bound `request` method as handed to each sub-resource. A
+  # `Method` conforms structurally, so `method(:request)` is accepted here while
+  # callers still see a typed `Hash[String, untyped]` return instead of untyped.
+  interface _Request
+    def call: (String path, **untyped params) -> Hash[String, untyped]
+  end
+
+  BASE_URL: String
+  # Singletons (not bare Class) so `rescue *RETRIABLE => e` types e as StandardError.
+  RETRIABLE: Array[singleton(StandardError)]
+
+  @api_id: String
+  @timeout: Integer
+  @test: bool
+  @retries: Integer
+  @from: String?
+  @logger: Logger?
+  @my: My?
+  @auth: Auth?
+  @stoplist: Stoplist?
+  @callbacks: Callbacks?
+  @callcheck: CallCheck?
+
+  def initialize: (String api_id, ?timeout: Integer, ?test: bool, ?retries: Integer, ?from: String?, ?logger: Logger?) -> void
+
+  def deliver: (String | Array[String] | Hash[String, String] to, ?String? text,
+                ?from: String?, ?time: Integer?, ?ttl: Integer?, ?daytime: bool,
+                ?translit: bool, ?test: bool?, ?ip: String?, ?partner_id: Integer?) -> SendResult
+
+  def cost: (String | Array[String] to, ?String? text, ?translit: bool) -> Cost
+
+  def status: (String | Array[String] sms_id) -> (Status | Array[Status])
+
+  def call: (String | Integer phone, ?ip: String, ?partner_id: Integer?) -> Call
+
+  def my: () -> My
+  def auth: () -> Auth
+  def stoplist: () -> Stoplist
+  def callbacks: () -> Callbacks
+  def callcheck: () -> CallCheck
+
+  private
+
+  def add_recipients: (Hash[untyped, untyped] params, String | Array[String] | Hash[String, String] to, String? text) -> void
+  def request: (String path, **untyped params) -> Hash[String, untyped]
+  def perform: (URI::HTTP uri, String body) -> Hash[String, untyped]
+  def http: (URI::HTTP uri) -> Net::HTTP
+  def parse: (String? raw) -> Hash[String, untyped]
+  def error_for: (Hash[String, untyped] data) -> ResponseError
+  def error_class: (Integer? code) -> singleton(ResponseError)
+end

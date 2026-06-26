@@ -1,0 +1,9 @@
+class SmsRu
+  # Authentication checks against the account.
+  class Auth
+    @request: _Request
+
+    def initialize: (_Request request) -> void
+    def ok?: () -> bool
+  end
+end

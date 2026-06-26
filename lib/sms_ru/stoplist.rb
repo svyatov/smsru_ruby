@@ -37,7 +37,7 @@ class SmsRu
     # @raise [SmsRu::ResponseError] if SMS.ru rejects the request
     def list
       data = @request.call("/stoplist/get")
-      (data["stoplist"] || {}).map { |phone, note| StoplistEntry.new(phone: phone, note: note) }
+      Coerce.records(data["stoplist"]).map { |phone, note| StoplistEntry.new(phone: String(phone), note: String(note)) }
     end
   end
 end

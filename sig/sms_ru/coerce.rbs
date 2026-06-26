@@ -1,0 +1,11 @@
+class SmsRu
+  # Normalizes loosely-typed SMS.ru JSON values into the result objects' types.
+  # `self?.` mirrors `module_function`: each helper is both a private instance
+  # method and a public singleton method.
+  module Coerce
+    def self?.string: (untyped value) -> String?
+    def self?.integer: (untyped value) -> Integer?
+    def self?.float: (untyped value) -> Float?
+    def self?.records: (untyped value) -> Hash[untyped, untyped]
+  end
+end

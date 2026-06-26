@@ -3,6 +3,7 @@
 require "bundler/gem_tasks"
 require "rake/testtask"
 require "rubocop/rake_task"
+require "steep/rake_task"
 require "yard"
 
 Rake::TestTask.new(:test) do |t|
@@ -12,6 +13,37 @@ Rake::TestTask.new(:test) do |t|
 end
 
 RuboCop::RakeTask.new
+
+Steep::RakeTask.new
+
+RBS_LIBS = %w[logger json net-http uri openssl].freeze
+
+desc "Validate RBS signatures"
+task :rbs do
+  sh "rbs #{RBS_LIBS.map { |lib| "-r #{lib}" }.join(" ")} -I sig validate"
+end
+
+desc "Report Steep type coverage (typed % per file)"
+task "steep:stats" do
+  sh "steep stats --format=table"
+end
+
+desc "Fail unless Steep reports 100% type coverage (zero untyped calls)"
+task "steep:coverage" do
+  rows = `steep stats --format=csv`.lines.drop(1)
+  untyped = rows.sum { |line| line.split(",")[4].to_i }
+  abort "Type coverage regressed: #{untyped} untyped call(s); route them through Coerce" unless untyped.zero?
+  puts "Type coverage: 100% (0 untyped calls)"
+end
+
+desc "Verify actual runtime values against the RBS signatures (RBS::Test)"
+task "rbs:test" do
+  ENV["RBS_TEST_TARGET"] = "SmsRu::*"
+  ENV["RBS_TEST_OPT"] = "-I sig #{RBS_LIBS.map { |lib| "-r #{lib}" }.join(" ")}"
+  ENV["RBS_TEST_DOUBLE_SUITE"] = "minitest"
+  ENV["RUBYOPT"] = "-r rbs/test/setup #{ENV.fetch("RUBYOPT", nil)}".strip
+  Rake::Task[:test].invoke
+end
 
 YARD::Rake::YardocTask.new
 
@@ -34,4 +66,4 @@ namespace :vcr do
   end
 end
 
-task default: %i[rubocop test]
+task default: %i[rubocop rbs test]

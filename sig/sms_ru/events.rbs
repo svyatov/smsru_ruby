@@ -1,0 +1,49 @@
+class SmsRu
+  # Typed events decoded from an inbound SMS.ru webhook payload.
+  module Events
+    # A delivery-status notification (record type "sms_status"). Its `status_code`
+    # is nullable (a malformed line yields nil); DeliveryStatus's predicates
+    # nil-guard, so the module is included directly here as it is at runtime.
+    class SmsStatus
+      include DeliveryStatus
+
+      attr_reader id: String
+      attr_reader status_code: Integer?
+      attr_reader created_at: Time?
+      attr_reader raw: Array[String]
+
+      def initialize: (id: String, status_code: Integer?, created_at: Time?, raw: Array[String]) -> void
+      def type: () -> String
+    end
+
+    # A call-authorization notification (record type "callcheck_status").
+    class CallcheckStatus
+      attr_reader id: String
+      attr_reader status_code: Integer?
+      attr_reader created_at: Time?
+      attr_reader raw: Array[String]
+
+      def initialize: (id: String, status_code: Integer?, created_at: Time?, raw: Array[String]) -> void
+      def type: () -> String
+      def confirmed?: () -> bool
+      def expired?: () -> bool
+    end
+
+    # SMS.ru's periodic heartbeat record (record type "test").
+    class Test
+      attr_reader created_at: Time?
+      attr_reader raw: Array[String]
+
+      def initialize: (created_at: Time?, raw: Array[String]) -> void
+      def type: () -> String
+    end
+
+    # Any record type this gem does not model explicitly.
+    class Unknown
+      attr_reader type: String
+      attr_reader raw: Array[String]
+
+      def initialize: (type: String, raw: Array[String]) -> void
+    end
+  end
+end

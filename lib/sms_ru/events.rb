@@ -14,7 +14,7 @@ class SmsRu
     #   @return [Time, nil] when SMS.ru created the status
     # @!attribute [r] raw
     #   @return [Array<String>] every line of the original record
-    SmsStatus = Data.define(:id, :status_code, :created_at, :raw) do
+    class SmsStatus < Data.define(:id, :status_code, :created_at, :raw)
       include DeliveryStatus
 
       # @return [String] the wire record type
@@ -31,7 +31,7 @@ class SmsRu
     #   @return [Time, nil] when SMS.ru created the status
     # @!attribute [r] raw
     #   @return [Array<String>] every line of the original record
-    CallcheckStatus = Data.define(:id, :status_code, :created_at, :raw) do
+    class CallcheckStatus < Data.define(:id, :status_code, :created_at, :raw)
       # @return [String] the wire record type
       def type = "callcheck_status"
 
@@ -48,7 +48,7 @@ class SmsRu
     #   @return [Time, nil] when SMS.ru sent the heartbeat
     # @!attribute [r] raw
     #   @return [Array<String>] every line of the original record
-    Test = Data.define(:created_at, :raw) do
+    class Test < Data.define(:created_at, :raw)
       # @return [String] the wire record type
       def type = "test"
     end
@@ -59,6 +59,7 @@ class SmsRu
     #   @return [String] the wire record type
     # @!attribute [r] raw
     #   @return [Array<String>] every line of the original record
-    Unknown = Data.define(:type, :raw)
+    class Unknown < Data.define(:type, :raw)
+    end
   end
 end

@@ -1,0 +1,9 @@
+# Standard-library signatures these RBS files reference. Consumers' RBS/Steep
+# load these automatically when they depend on smsru_ruby. (The gem has no
+# runtime gem dependencies, so none are auto-derived from the gemspec.)
+dependencies:
+  - name: logger      # Logger? in SmsRu#initialize
+  - name: openssl     # Webhook signature verification
+  - name: json        # client request parsing
+  - name: net-http    # client transport
+  - name: uri         # client transport
