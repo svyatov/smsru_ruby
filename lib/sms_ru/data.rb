@@ -32,12 +32,12 @@ class SmsRu
     # @param hash [Hash] one entry of the response `sms` object
     # @return [SmsRu::Sms]
     def self.build(phone, hash)
-      ok = Coerce.string?(hash["status"]) == "OK"
+      ok = Coerce.string(hash["status"]) == "OK"
       new(
         phone: String(phone),
         sms_id: Coerce.string?(hash["sms_id"]),
-        error_code: ok ? nil : Coerce.integer?(hash["status_code"]),
-        error_text: ok ? nil : Coerce.string?(hash["status_text"])
+        error_code: ok ? nil : Coerce.integer(hash["status_code"]),
+        error_text: ok ? nil : Coerce.string(hash["status_text"])
       )
     end
 
@@ -73,7 +73,7 @@ class SmsRu
   # @!attribute [r] status_code
   #   @return [Integer] the delivery state code (see SmsRu::Statuses)
   # @!attribute [r] status_text
-  #   @return [String, nil] the human-readable delivery state, when present
+  #   @return [String] the human-readable delivery state
   # @!attribute [r] cost
   #   @return [Float, nil] the message cost, when present
   class Status < Data.define(:sms_id, :status_code, :status_text, :cost)
@@ -86,7 +86,7 @@ class SmsRu
       new(
         sms_id: String(sms_id),
         status_code: Coerce.integer(hash["status_code"], Statuses::NOT_FOUND),
-        status_text: Coerce.string?(hash["status_text"]),
+        status_text: Coerce.string(hash["status_text"]),
         cost: Coerce.float?(hash["cost"])
       )
     end
@@ -117,13 +117,13 @@ class SmsRu
     # @param hash [Hash] one entry of the response `sms` object
     # @return [SmsRu::CostItem]
     def self.build(phone, hash)
-      ok = Coerce.string?(hash["status"]) == "OK"
+      ok = Coerce.string(hash["status"]) == "OK"
       new(
         phone: String(phone),
         cost: Coerce.float?(hash["cost"]),
         sms_count: Coerce.integer?(hash["sms"]),
-        error_code: ok ? nil : Coerce.integer?(hash["status_code"]),
-        error_text: ok ? nil : Coerce.string?(hash["status_text"])
+        error_code: ok ? nil : Coerce.integer(hash["status_code"]),
+        error_text: ok ? nil : Coerce.string(hash["status_text"])
       )
     end
 
@@ -240,12 +240,12 @@ class SmsRu
   # @!attribute [r] status_code
   #   @return [Integer] the check status code (401 once confirmed)
   # @!attribute [r] status_text
-  #   @return [String, nil] the human-readable status, when present
+  #   @return [String] the human-readable status
   class CallCheckStatus < Data.define(:status_code, :status_text)
     # @param hash [Hash] the parsed /callcheck/status response
     # @return [SmsRu::CallCheckStatus]
     def self.build(hash)
-      new(status_code: Coerce.integer(hash["check_status"]), status_text: Coerce.string?(hash["check_status_text"]))
+      new(status_code: Coerce.integer(hash["check_status"]), status_text: Coerce.string(hash["check_status_text"]))
     end
 
     # @return [Boolean] true once the user has placed the authorizing call

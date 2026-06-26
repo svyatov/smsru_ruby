@@ -133,7 +133,7 @@ class SmsRu
   end
 
   def request(path, **params)
-    params[:api_id] = @api_id unless Coerce.string?(params[:api_id]) == "none"
+    params[:api_id] = @api_id unless Coerce.string(params[:api_id]) == "none"
     @logger&.debug("[SmsRu] POST #{path}")
     uri = URI("#{BASE_URL}#{path}?json=1") #: URI::HTTP
     perform(uri, URI.encode_www_form(params))
