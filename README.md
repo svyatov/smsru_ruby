@@ -214,20 +214,27 @@ client.callbacks.list   # => [...]
 client.callbacks.remove("https://example.com/sms/callback") # => [...]
 ```
 
-In your webhook handler, parse the incoming payload and acknowledge it by
-replying with the string `"100"`:
+In your webhook handler, verify the signature, parse the payload, and
+acknowledge it by replying with the string `"100"`:
 
 ```ruby
-# `data` is the POST "data" parameter (an Array of records)
-events = SmsRu::Webhook.parse(params["data"])
-
-events.each do |event|
-  next unless event.sms_status?
-
-  update_delivery_status(event.sms_id, event.status_code)
+# Reject forged callbacks: SMS.ru signs every payload with your api_id.
+unless SmsRu::Webhook.valid?(params["data"], params["hash"], "YOUR_API_ID")
+  return head(:forbidden)
 end
 
-# Respond with exactly "100", or SMS.ru treats the callback as failed.
+# SMS.ru sends up to 100 records as POST fields data[1]..data[100]
+# (a Hash in Rack/Rails, an Array in PHP). #parse handles either shape.
+SmsRu::Webhook.parse(params["data"]).each do |event|
+  if event.sms_status?            # delivery report
+    update_delivery_status(event.id, event.status_code)  # event.id is the sms_id
+  elsif event.callcheck_status?   # call-authorization result
+    confirm_authorization(event.id) if event.status_code == 401 # 402 = expired
+  end
+  event.created_at                # Time the status was generated
+end
+
+# Respond with exactly "100", or SMS.ru retries every 60s for up to 5 days.
 ```
 
 ## Error handling
