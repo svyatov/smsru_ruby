@@ -23,6 +23,35 @@ class WebhookTest < Minitest::Test
     assert_equal 402, event.status_code
   end
 
+  def test_parse_test_heartbeat
+    event = SmsRu::Webhook.parse("test\n1782404811").first
+
+    assert_predicate event, :test?
+    refute_predicate event, :sms_status?
+    assert_nil event.id
+    assert_nil event.status_code
+    assert_equal Time.at(1_782_404_811), event.created_at
+  end
+
+  # The exact payload shape observed in production: keys start at "0", and
+  # heartbeat ("test") records are interleaved with real events.
+  def test_parse_real_mixed_payload
+    data = {
+      "0" => "test\n1782404811",
+      "1" => "callcheck_status\n202626-48053517\n401\n1782404881",
+      "2" => "test\n1782405281",
+      "4" => "callcheck_status\n202626-48054630\n401\n1782405619"
+    }
+
+    events = SmsRu::Webhook.parse(data)
+
+    assert_equal %w[test callcheck_status test callcheck_status], events.map(&:type)
+    confirmed = events.select(&:callcheck_status?)
+
+    assert_equal %w[202626-48053517 202626-48054630], confirmed.map(&:id)
+    assert_equal [401, 401], confirmed.map(&:status_code)
+  end
+
   def test_parse_single_string
     events = SmsRu::Webhook.parse("sms_status\n000000-9\n103\n1782469893")
 

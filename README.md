@@ -223,9 +223,11 @@ unless SmsRu::Webhook.valid?(params["data"], params["hash"], "YOUR_API_ID")
   return head(:forbidden)
 end
 
-# SMS.ru sends up to 100 records as POST fields data[1]..data[100]
+# SMS.ru sends up to 100 records as POST fields data[0]..data[N]
 # (a Hash in Rack/Rails, an Array in PHP). #parse handles either shape.
 SmsRu::Webhook.parse(params["data"]).each do |event|
+  next if event.test?             # SMS.ru's periodic heartbeat — just ignore it
+
   if event.sms_status?            # delivery report
     update_delivery_status(event.id, event.status_code)  # event.id is the sms_id
   elsif event.callcheck_status?   # call-authorization result
