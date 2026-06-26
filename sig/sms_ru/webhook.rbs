@@ -12,7 +12,6 @@ class SmsRu
     # into the SmsStatus/CallcheckStatus keyword constructors via `**`.
     def self.status_fields: (Array[String] lines) -> { id: String, status_code: Integer?, created_at: Time?, raw: Array[String] }
     def self.entries: (payload data) -> Array[String]
-    def self.int: (String? str) -> Integer?
     def self.time: (String? str) -> Time?
   end
 end

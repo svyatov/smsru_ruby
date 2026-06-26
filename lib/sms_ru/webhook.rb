@@ -50,7 +50,7 @@ class SmsRu
     # Common fields of the "type / id / status / timestamp" status records.
     # @api private
     def self.status_fields(lines)
-      { id: lines[1].to_s, status_code: int(lines[2]), created_at: time(lines[3]), raw: lines }
+      { id: lines[1].to_s, status_code: Coerce.integer?(lines[2]), created_at: time(lines[3]), raw: lines }
     end
 
     # Normalizes the `data` param to an ordered Array of record strings. SMS.ru
@@ -64,14 +64,10 @@ class SmsRu
       data.is_a?(Hash) ? data.sort_by { |k, _| Coerce.integer(k) }.map(&:last) : Array(data)
     end
 
-    # Parses an Integer from a webhook line, returning nil for blanks or garbage.
-    # @api private
-    def self.int(str) = str && Integer(str, exception: false)
-
     # Converts a unix-timestamp line into a Time, or nil when absent.
     # @api private
     def self.time(str)
-      unix = int(str)
+      unix = Coerce.integer?(str)
       unix && Time.at(unix)
     end
   end
