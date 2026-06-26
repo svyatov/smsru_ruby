@@ -1,77 +1,82 @@
 # frozen_string_literal: true
 
 class SmsRu
+  # Collection helpers shared by results that wrap a `messages` array of
+  # per-recipient entries (each responding to #ok?): SmsRu::SendResult and
+  # SmsRu::Cost. There is intentionally no lookup-by-phone, since one request may
+  # target the same number more than once.
+  module MessageCollection
+    # @return [Boolean] true when every recipient succeeded
+    def ok? = messages.all?(&:ok?)
+
+    # @return [Array] the recipient entries that succeeded
+    def ok = messages.select(&:ok?)
+
+    # @return [Array] the recipient entries that failed
+    def failed = messages.reject(&:ok?)
+  end
+
   # A single message inside a send response (one entry of the `sms` object).
+  # `error_code`/`error_text` are populated only when this recipient was rejected.
   #
   # @!attribute [r] phone
   #   @return [String] the recipient's phone number
   # @!attribute [r] sms_id
-  #   @return [String, nil] the message id assigned by SMS.ru (nil on failure)
-  # @!attribute [r] status
-  #   @return [String] the per-recipient status ("OK" or "ERROR")
-  # @!attribute [r] status_code
-  #   @return [Integer] the per-recipient numeric status code
-  # @!attribute [r] status_text
-  #   @return [String, nil] the human-readable status text, when present
-  Sms = Data.define(:phone, :sms_id, :status, :status_code, :status_text) do
+  #   @return [String, nil] the message id assigned by SMS.ru (nil when rejected)
+  # @!attribute [r] error_code
+  #   @return [Integer, nil] the rejection code, or nil when accepted
+  # @!attribute [r] error_text
+  #   @return [String, nil] the rejection reason, or nil when accepted
+  Sms = Data.define(:phone, :sms_id, :error_code, :error_text) do
     # @param phone [String] the recipient's phone number
     # @param hash [Hash] one entry of the response `sms` object
     # @return [SmsRu::Sms]
     def self.build(phone, hash)
+      ok = hash["status"] == "OK"
       new(
         phone: phone,
         sms_id: hash["sms_id"],
-        status: hash["status"],
-        status_code: hash["status_code"],
-        status_text: hash["status_text"]
+        error_code: ok ? nil : hash["status_code"],
+        error_text: ok ? nil : hash["status_text"]
       )
     end
 
     # @return [Boolean] true when this recipient was accepted
-    def ok? = status == "OK"
+    def ok? = error_code.nil?
   end
 
   # Result of SmsRu#deliver. `messages` holds one Sms per recipient; individual
-  # recipients may have failed even when the overall request succeeded.
+  # recipients may have failed even when the overall request succeeded (use #ok?
+  # or #failed to tell).
   #
-  # @!attribute [r] status_code
-  #   @return [Integer] the overall request status code (100 on success)
   # @!attribute [r] balance
   #   @return [Float] the account balance after the request
   # @!attribute [r] messages
   #   @return [Array<SmsRu::Sms>] one entry per recipient
-  SendResult = Data.define(:status_code, :balance, :messages) do
+  SendResult = Data.define(:balance, :messages) do
+    include MessageCollection
+
     # @param hash [Hash] the parsed /sms/send response
     # @return [SmsRu::SendResult]
     def self.build(hash)
       messages = (hash["sms"] || {}).map { |phone, sms| Sms.build(phone, sms) }
-      new(status_code: hash["status_code"], balance: hash["balance"], messages: messages)
+      new(balance: hash["balance"], messages: messages)
     end
-
-    # @return [Array<SmsRu::Sms>] the recipients SMS.ru accepted
-    def ok = messages.select(&:ok?)
-
-    # @return [Array<SmsRu::Sms>] the recipients SMS.ru rejected
-    def failed = messages.reject(&:ok?)
-
-    # @param phone [String] a recipient number
-    # @return [SmsRu::Sms, nil] that recipient's result, or nil if absent
-    def [](phone) = messages.find { |sms| sms.phone == phone }
   end
 
   # Delivery status of one message (one entry of a /sms/status response).
+  # `status_code` is the message's delivery state; read it with #delivered?,
+  # #pending?, #failed?, or the SmsRu::Statuses constants.
   #
   # @!attribute [r] sms_id
   #   @return [String] the message id
-  # @!attribute [r] status
-  #   @return [String] the status ("OK" or "ERROR")
   # @!attribute [r] status_code
-  #   @return [Integer] the numeric delivery status code
+  #   @return [Integer] the delivery state code (see SmsRu::Statuses)
+  # @!attribute [r] status_text
+  #   @return [String, nil] the human-readable delivery state, when present
   # @!attribute [r] cost
   #   @return [Float, nil] the message cost, when present
-  # @!attribute [r] status_text
-  #   @return [String, nil] the human-readable status text, when present
-  Status = Data.define(:sms_id, :status, :status_code, :cost, :status_text) do
+  Status = Data.define(:sms_id, :status_code, :status_text, :cost) do
     include DeliveryStatus
 
     # @param sms_id [String] the message id
@@ -80,10 +85,9 @@ class SmsRu
     def self.build(sms_id, hash)
       new(
         sms_id: sms_id,
-        status: hash["status"],
         status_code: hash["status_code"],
-        cost: hash["cost"],
-        status_text: hash["status_text"]
+        status_text: hash["status_text"],
+        cost: hash["cost"]
       )
     end
 
@@ -91,41 +95,40 @@ class SmsRu
     # @return [Array<SmsRu::Status>] one Status per requested id
     def self.build_all(hash) = (hash["sms"] || {}).map { |sms_id, sms| build(sms_id, sms) }
 
-    # @return [Boolean] true when the message status is "OK"
-    def ok? = status == "OK"
+    # @return [Boolean] true when the queried id exists (not status code -1)
+    def found? = status_code != Statuses::NOT_FOUND
   end
 
   # Per-recipient cost (one entry of a /sms/cost response).
+  # `error_code`/`error_text` are populated only when this recipient cannot be priced.
   #
   # @!attribute [r] phone
   #   @return [String] the recipient's phone number
-  # @!attribute [r] status
-  #   @return [String] the per-recipient status ("OK" or "ERROR")
-  # @!attribute [r] status_code
-  #   @return [Integer] the per-recipient numeric status code
   # @!attribute [r] cost
-  #   @return [Float] the price for this recipient
+  #   @return [Float, nil] the price for this recipient, or nil when it errored
   # @!attribute [r] sms_count
-  #   @return [Integer] the number of SMS segments
-  # @!attribute [r] status_text
-  #   @return [String, nil] the human-readable status text, when present
-  CostItem = Data.define(:phone, :status, :status_code, :cost, :sms_count, :status_text) do
+  #   @return [Integer, nil] the number of SMS segments, or nil when it errored
+  # @!attribute [r] error_code
+  #   @return [Integer, nil] the error code, or nil when priced
+  # @!attribute [r] error_text
+  #   @return [String, nil] the error reason, or nil when priced
+  CostItem = Data.define(:phone, :cost, :sms_count, :error_code, :error_text) do
     # @param phone [String] the recipient's phone number
     # @param hash [Hash] one entry of the response `sms` object
     # @return [SmsRu::CostItem]
     def self.build(phone, hash)
+      ok = hash["status"] == "OK"
       new(
         phone: phone,
-        status: hash["status"],
-        status_code: hash["status_code"],
         cost: hash["cost"],
         sms_count: hash["sms"],
-        status_text: hash["status_text"]
+        error_code: ok ? nil : hash["status_code"],
+        error_text: ok ? nil : hash["status_text"]
       )
     end
 
     # @return [Boolean] true when this recipient was priced successfully
-    def ok? = status == "OK"
+    def ok? = error_code.nil?
   end
 
   # Result of SmsRu#cost.
@@ -137,6 +140,8 @@ class SmsRu
   # @!attribute [r] messages
   #   @return [Array<SmsRu::CostItem>] one entry per recipient
   Cost = Data.define(:total_cost, :total_sms, :messages) do
+    include MessageCollection
+
     # @param hash [Hash] the parsed /sms/cost response
     # @return [SmsRu::Cost]
     def self.build(hash)

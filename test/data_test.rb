@@ -16,7 +16,6 @@ class DataTest < Minitest::Test
 
     result = SmsRu::SendResult.build(hash)
 
-    assert_equal 100, result.status_code
     assert_in_delta 4122.56, result.balance
     assert_equal 2, result.messages.size
 
@@ -25,15 +24,17 @@ class DataTest < Minitest::Test
     assert_equal "79255070602", ok.phone
     assert_equal "000000-10000000", ok.sms_id
     assert_predicate ok, :ok?
+    assert_nil ok.error_code
 
     failed = result.messages.last
 
     refute_predicate failed, :ok?
-    assert_equal "blocked", failed.status_text
+    assert_equal 207, failed.error_code
+    assert_equal "blocked", failed.error_text
   end
 
   def test_send_result_build_without_sms_key
-    result = SmsRu::SendResult.build("status" => "OK", "status_code" => 100, "balance" => 1.0)
+    result = SmsRu::SendResult.build("status" => "OK", "balance" => 1.0)
 
     assert_empty result.messages
   end
@@ -47,10 +48,33 @@ class DataTest < Minitest::Test
       }
     )
 
+    refute_predicate result, :ok? # one recipient failed
     assert_equal ["79991111111"], result.ok.map(&:phone)
     assert_equal ["79992222222"], result.failed.map(&:phone)
-    assert_equal "1", result["79991111111"].sms_id
-    assert_nil result["70000000000"]
+  end
+
+  def test_send_result_ok_when_every_recipient_succeeds
+    result = SmsRu::SendResult.build(
+      "status" => "OK", "balance" => 1.0,
+      "sms" => { "79991111111" => { "status" => "OK", "status_code" => 100, "sms_id" => "1" } }
+    )
+
+    assert_predicate result, :ok?
+  end
+
+  def test_cost_partitions_recipients
+    cost = SmsRu::Cost.build(
+      "total_cost" => 1.0, "total_sms" => 1,
+      "sms" => {
+        "79991111111" => { "status" => "OK", "status_code" => 100, "cost" => 1.0, "sms" => 1 },
+        "79992222222" => { "status" => "ERROR", "status_code" => 207, "status_text" => "blocked" }
+      }
+    )
+
+    refute_predicate cost, :ok?
+    assert_equal ["79991111111"], cost.ok.map(&:phone)
+    assert_equal ["79992222222"], cost.failed.map(&:phone)
+    assert_equal 207, cost.failed.first.error_code
   end
 
   def test_cost_build
@@ -80,7 +104,15 @@ class DataTest < Minitest::Test
     assert_equal 1, statuses.size
     assert_equal "000000-000001", statuses.first.sms_id
     assert_equal 103, statuses.first.status_code
-    assert_predicate statuses.first, :ok?
+    assert_predicate statuses.first, :delivered?
+    assert_predicate statuses.first, :found?
+  end
+
+  def test_status_not_found
+    status = SmsRu::Status.build("bogus", "status_code" => SmsRu::Statuses::NOT_FOUND)
+
+    refute_predicate status, :found?
+    refute_predicate status, :delivered?
   end
 
   def test_status_state_predicates

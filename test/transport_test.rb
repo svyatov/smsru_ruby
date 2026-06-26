@@ -89,7 +89,6 @@ class TransportTest < Minitest::Test
 
     result = @client.deliver("79991234567", "hi")
 
-    assert_equal 100, result.status_code
     assert_in_delta 4122.56, result.balance
     assert_equal "000000-1", result.messages.first.sms_id
     assert_predicate result.messages.first, :ok?

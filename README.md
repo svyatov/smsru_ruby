@@ -128,20 +128,19 @@ overall request succeeds, so inspect each message:
 
 ```ruby
 result = client.deliver(["79991234567", "74993221627"], "Hi")
-result.status_code              # => 100
 result.balance                 # => 4122.56
 result.messages.each do |sms|
   if sms.ok?
     puts "#{sms.phone}: sent as #{sms.sms_id}"
   else
-    puts "#{sms.phone}: failed (#{sms.status_code}) #{sms.status_text}"
+    puts "#{sms.phone}: rejected (#{sms.error_code}) #{sms.error_text}"
   end
 end
 
-# Or use the partition helpers:
+# Or use the collection helpers:
+result.ok?                     # => true only if every recipient was accepted
 result.ok                      # => [SmsRu::Sms, ...] accepted recipients
 result.failed                  # => [SmsRu::Sms, ...] rejected recipients
-result["79991234567"]          # => the SmsRu::Sms for that number (or nil)
 ```
 
 ## Cost and status
@@ -152,23 +151,35 @@ cost = client.cost("79991234567", "How much?")
 cost.total_cost  # => 1.74
 cost.total_sms   # => 2
 
+# Same collection helpers as a send result:
+cost.ok?                       # => true only if every recipient was priced
+cost.failed                    # => [SmsRu::CostItem, ...] recipients that errored
+cost.failed.first.error_code   # => 207
+
 # Delivery status — one id or an Array of ids
 status = client.status("000000-10000000")
-status.status_code  # => 103
+status.status_code  # => 103   (the delivery state code)
 status.status_text  # => "Сообщение доставлено"
 
 # State predicates instead of memorizing codes:
 status.delivered?   # => true  (code 103)
 status.pending?     # => false (codes 100–102, still in transit)
 status.failed?      # => false (codes 104–108, 150)
+status.found?       # => true  (false only when the id is unknown, code -1)
 
 statuses = client.status(["000000-10000000", "000000-10000001"]) # => [SmsRu::Status, ...]
 ```
 
 Every code has a named constant under `SmsRu::Statuses` (e.g.
 `SmsRu::Statuses::DELIVERED == 103`, `::EXPIRED`, `::READ`) for the cases the
-three predicates don't cover. The same predicates are available on
+predicates don't cover. The same predicates are available on
 `SmsRu::Events::SmsStatus` from webhook payloads.
+
+> **Outcome vs. delivery state — two ideas, two names.** `ok?` (with
+> `error_code`/`error_text` on a rejected `Sms`/`CostItem`) answers *did the
+> request succeed for this recipient*. `status_code` (with
+> `delivered?`/`pending?`/`failed?`) answers *where the message is in delivery* —
+> and only `Status` and webhook events carry it.
 
 ## Verify by phone call
 
