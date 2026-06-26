@@ -7,7 +7,7 @@ A modern, dependency-free Ruby client for the [SMS.ru](https://sms.ru) HTTP API.
 
 It is a clean, idiomatic Ruby port of the official [SMS.ru PHP library](https://sms.ru/php):
 send single or bulk SMS, schedule delivery, check cost and delivery status, request
-call-password codes, inspect your balance/limits/senders, manage the stoplist, and
+verify users by phone call, inspect your balance/limits/senders, manage the stoplist, and
 register delivery callbacks — all returning typed, immutable result objects and
 raising typed errors.
 
@@ -23,8 +23,8 @@ raising typed errors.
 - [Quick start](#quick-start)
 - [Configuration](#configuration)
 - [Sending messages](#sending-messages)
-- [Cost, status and call-password](#cost-status-and-call-password)
-- [Authorize by incoming call (callcheck)](#authorize-by-incoming-call-callcheck)
+- [Cost and status](#cost-and-status)
+- [Verify by phone call](#verify-by-phone-call)
 - [Account information](#account-information)
 - [Stoplist](#stoplist)
 - [Callbacks (webhooks)](#callbacks-webhooks)
@@ -133,7 +133,7 @@ result.messages.each do |sms|
 end
 ```
 
-## Cost, status and call-password
+## Cost and status
 
 ```ruby
 # Price a message before sending (text is optional; omit it for the price of 1 SMS)
@@ -147,18 +147,24 @@ status.status_code  # => 103
 status.status_text  # => "Сообщение доставлено"
 
 statuses = client.status(["000000-10000000", "000000-10000001"]) # => [SmsRu::Status, ...]
+```
 
-# Call-password: SMS.ru calls the number; the last 4 digits of the calling
-# number (returned as `code`) are the authorization code.
+## Verify by phone call
+
+Two ways to verify a user by phone call — no SMS required.
+
+**Outbound (flash call).** SMS.ru calls the user; the last 4 digits of the
+calling number are the code. You receive the expected `code` to compare against
+what the user enters:
+
+```ruby
 call = client.call("79991234567")
-call.code     # => "1435"
+call.code     # => "1435" — the last 4 digits the user will see
 call.call_id  # => "000000-10000000"
 ```
 
-## Authorize by incoming call (callcheck)
-
-The user authorizes by calling a number you show them; SMS.ru drops the call
-(free for the caller) and marks the check confirmed.
+**Inbound (callcheck).** The user calls a number you show them; SMS.ru drops the
+call (free for the caller) and marks the check confirmed:
 
 ```ruby
 check = client.callcheck.add("79991234567")

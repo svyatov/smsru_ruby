@@ -84,8 +84,8 @@ class SmsRu
     sms_id.is_a?(Array) ? statuses : statuses.first
   end
 
-  # Requests a call-password: SMS.ru calls the number; the last 4 digits of the
-  # calling number (returned as `code`) are the authorization code.
+  # Requests a flash-call verification: SMS.ru calls the number; the last 4
+  # digits of the calling number (returned as `code`) are the code the user enters.
   #
   # @param phone [String, Integer] the number to call
   # @param ip [String] the end-user IP (anti-fraud); "-1" for manual/local requests

@@ -133,10 +133,11 @@ class SmsRu
     end
   end
 
-  # Result of SmsRu#call. `code` is the 4-digit code the robocall will dictate.
+  # Result of SmsRu#call (flash call). `code` is the last 4 digits of the number
+  # that calls the user — what they read off the incoming call and enter.
   #
   # @!attribute [r] code
-  #   @return [String] the 4-digit authorization code dictated by the robocall
+  #   @return [String] the 4-digit code (the calling number's last 4 digits)
   # @!attribute [r] call_id
   #   @return [String] the call id assigned by SMS.ru
   # @!attribute [r] cost
@@ -144,7 +145,7 @@ class SmsRu
   # @!attribute [r] balance
   #   @return [Float] the account balance after the call
   Call = Data.define(:code, :call_id, :cost, :balance) do
-    # @param hash [Hash] the parsed /sms/call response
+    # @param hash [Hash] the parsed /code/call response
     # @return [SmsRu::Call]
     def self.build(hash)
       new(code: hash["code"], call_id: hash["call_id"], cost: hash["cost"], balance: hash["balance"])

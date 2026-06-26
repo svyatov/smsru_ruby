@@ -16,7 +16,7 @@ Versioning tracks the official SMS.ru PHP library.
 - `SmsRu#deliver` — send to one number, many numbers (same text), or a Hash of
   `number => text` pairs; with `from`, `time`, `ttl`, `daytime`, `translit`,
   `test`, `ip`, and `partner_id` options.
-- `SmsRu#cost`, `#status`, `#call` (call-password; `ip`/`partner_id` options).
+- `SmsRu#cost`, `#status`, `#call` (flash-call verification; `ip`/`partner_id` options).
 - Account info via `SmsRu#my` (`#balance` → Float, `#limit`, `#free_limit`,
   `#senders`); `Limit`/`FreeLimit` expose integer counters and `#available_today`.
 - Credential check via `SmsRu#auth` (`#ok?`).
