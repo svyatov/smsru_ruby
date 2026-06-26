@@ -45,5 +45,5 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: svyatov/sms_ru_ruby
+          slug: svyatov/smsru_ruby
         if: ${{ matrix.ruby_version == '4.0' }}

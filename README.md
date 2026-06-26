@@ -1,7 +1,7 @@
-# sms_ru_ruby
+# smsru_ruby
 
-[![Gem Version](https://badge.fury.io/rb/sms_ru_ruby.svg)](https://rubygems.org/gems/sms_ru_ruby)
-[![CI](https://github.com/svyatov/sms_ru_ruby/actions/workflows/main.yml/badge.svg)](https://github.com/svyatov/sms_ru_ruby/actions/workflows/main.yml)
+[![Gem Version](https://badge.fury.io/rb/smsru_ruby.svg)](https://rubygems.org/gems/smsru_ruby)
+[![CI](https://github.com/svyatov/smsru_ruby/actions/workflows/main.yml/badge.svg)](https://github.com/svyatov/smsru_ruby/actions/workflows/main.yml)
 
 A modern, dependency-free Ruby client for the [SMS.ru](https://sms.ru) HTTP API.
 
@@ -41,17 +41,17 @@ CI runs against `ruby-head`, `4.0`, `3.4`, `3.3`, and `3.2`.
 
 ```ruby
 # Gemfile
-gem "sms_ru_ruby"
+gem "smsru_ruby"
 ```
 
 ```sh
 bundle install
 # or
-gem install sms_ru_ruby
+gem install smsru_ruby
 ```
 
 ```ruby
-require "sms_ru" # the gem is named sms_ru_ruby; require it as sms_ru
+require "smsru_ruby"
 ```
 
 ## Quick start

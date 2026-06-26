@@ -25,5 +25,5 @@ Versioning tracks the official SMS.ru PHP library.
 - Typed, immutable result objects and a typed error hierarchy under `SmsRu::Error`.
 - Configurable `timeout`, global `test` mode, and `retries` (TLS always verified).
 
-[Unreleased]: https://github.com/svyatov/sms_ru_ruby/compare/v1.2.0...HEAD
-[1.2.0]: https://github.com/svyatov/sms_ru_ruby/releases/tag/v1.2.0
+[Unreleased]: https://github.com/svyatov/smsru_ruby/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/svyatov/smsru_ruby/releases/tag/v1.2.0

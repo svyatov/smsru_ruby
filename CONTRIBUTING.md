@@ -1,13 +1,13 @@
 # Contributing
 
-Thanks for your interest in improving `sms_ru_ruby`! Please be respectful and
+Thanks for your interest in improving `smsru_ruby`! Please be respectful and
 follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Development setup
 
 ```sh
-git clone https://github.com/svyatov/sms_ru_ruby.git
-cd sms_ru_ruby
+git clone https://github.com/svyatov/smsru_ruby.git
+cd smsru_ruby
 bin/setup
 ```
 
@@ -48,4 +48,4 @@ Common types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`, 
 4. Ensure `bundle exec rake` passes.
 5. Open a PR describing the change and the motivation.
 
-Questions? Open an [issue](https://github.com/svyatov/sms_ru_ruby/issues).
+Questions? Open an [issue](https://github.com/svyatov/smsru_ruby/issues).

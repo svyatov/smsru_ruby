@@ -5,7 +5,7 @@ http_interactions:
     uri: https://sms.ru/sms/send?json=1
     body:
       encoding: US-ASCII
-      string: test=1&to=79255070602&msg=Hello+from+sms_ru_ruby&api_id=<API_ID>
+      string: test=1&to=79255070602&msg=Hello+from+smsru_ruby&api_id=<API_ID>
     headers:
       Content-Type:
       - application/x-www-form-urlencoded

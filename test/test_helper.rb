@@ -18,7 +18,7 @@ require "minitest/autorun"
 require "vcr"
 require "webmock/minitest"
 
-require "sms_ru"
+require "smsru_ruby"
 
 VCR.configure do |config|
   config.cassette_library_dir = "test/cassettes"

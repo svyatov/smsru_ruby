@@ -11,7 +11,7 @@
 Please **do not** open a public issue for security vulnerabilities.
 
 Instead, report them privately via
-[GitHub Security Advisories](https://github.com/svyatov/sms_ru_ruby/security/advisories/new),
+[GitHub Security Advisories](https://github.com/svyatov/smsru_ruby/security/advisories/new),
 or by email to **leonid@svyatov.com**.
 
 You can expect an acknowledgement within 48 hours and an initial assessment

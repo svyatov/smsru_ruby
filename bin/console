@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
-require "sms_ru"
+require "smsru_ruby"
 
 require "irb"
 IRB.start(__FILE__)
