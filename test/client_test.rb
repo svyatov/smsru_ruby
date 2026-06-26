@@ -65,37 +65,37 @@ class ClientTest < Minitest::Test
 
   def test_balance
     with_cassette("balance") do
-      refute_nil @client.balance.balance
+      refute_nil @client.my.balance
     end
   end
 
   def test_limit
     with_cassette("limit") do
-      limit = @client.limit
+      limit = @client.my.limit
 
       refute_nil limit.total_limit
       refute_nil limit.used_today
     end
   end
 
-  def test_free
+  def test_free_limit
     with_cassette("free") do
-      free = @client.free
+      free = @client.my.free_limit
 
-      assert_instance_of SmsRu::Free, free
+      assert_instance_of SmsRu::FreeLimit, free
       refute_nil free.total_free
     end
   end
 
   def test_senders
     with_cassette("senders") do
-      assert_kind_of Array, @client.senders
+      assert_kind_of Array, @client.my.senders
     end
   end
 
-  def test_authed_true
+  def test_auth_ok
     with_cassette("authed") do
-      assert_predicate @client, :authed?
+      assert_predicate @client.auth, :ok?
     end
   end
 

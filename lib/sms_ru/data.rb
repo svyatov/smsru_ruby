@@ -148,17 +148,7 @@ class SmsRu
     end
   end
 
-  # Result of SmsRu#balance.
-  #
-  # @!attribute [r] balance
-  #   @return [Float] the current account balance
-  Balance = Data.define(:balance) do
-    # @param hash [Hash] the parsed /my/balance response
-    # @return [SmsRu::Balance]
-    def self.build(hash) = new(balance: hash["balance"])
-  end
-
-  # Result of SmsRu#limit (daily sending limit).
+  # Result of SmsRu::My#limit (daily sending limit).
   #
   # @!attribute [r] total_limit
   #   @return [String] the daily limit (SMS.ru returns this as a String)
@@ -170,15 +160,15 @@ class SmsRu
     def self.build(hash) = new(total_limit: hash["total_limit"], used_today: hash["used_today"])
   end
 
-  # Result of SmsRu#free (free daily messages).
+  # Result of SmsRu::My#free_limit (free daily messages).
   #
   # @!attribute [r] total_free
   #   @return [Integer] the daily allowance of free messages
   # @!attribute [r] used_today
   #   @return [Integer, nil] the number used today (nil when unavailable)
-  Free = Data.define(:total_free, :used_today) do
+  FreeLimit = Data.define(:total_free, :used_today) do
     # @param hash [Hash] the parsed /my/free response
-    # @return [SmsRu::Free]
+    # @return [SmsRu::FreeLimit]
     def self.build(hash) = new(total_free: hash["total_free"], used_today: hash["used_today"])
   end
 

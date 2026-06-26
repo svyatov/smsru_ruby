@@ -68,13 +68,11 @@ class DataTest < Minitest::Test
   end
 
   def test_scalar_builds
-    assert_in_delta 4762.58, SmsRu::Balance.build("balance" => 4762.58).balance
-
     limit = SmsRu::Limit.build("total_limit" => 100, "used_today" => 7)
 
     assert_equal [100, 7], [limit.total_limit, limit.used_today]
 
-    free = SmsRu::Free.build("total_free" => 5, "used_today" => 3)
+    free = SmsRu::FreeLimit.build("total_free" => 5, "used_today" => 3)
 
     assert_equal [5, 3], [free.total_free, free.used_today]
   end
@@ -89,10 +87,10 @@ class DataTest < Minitest::Test
   end
 
   def test_data_value_equality_and_to_h
-    one = SmsRu::Balance.build("balance" => 1.0)
-    two = SmsRu::Balance.build("balance" => 1.0)
+    one = SmsRu::Limit.build("total_limit" => 1, "used_today" => 0)
+    two = SmsRu::Limit.build("total_limit" => 1, "used_today" => 0)
 
     assert_equal one, two
-    assert_equal({ balance: 1.0 }, one.to_h)
+    assert_equal({ total_limit: 1, used_today: 0 }, one.to_h)
   end
 end

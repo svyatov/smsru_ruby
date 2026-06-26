@@ -17,42 +17,42 @@ class TransportTest < Minitest::Test
   def test_raises_connection_error_after_exhausting_retries
     stub = stub_request(:post, BALANCE_URL).to_timeout
 
-    assert_raises(SmsRu::ConnectionError) { @client.balance }
+    assert_raises(SmsRu::ConnectionError) { @client.my.balance }
     assert_requested stub, times: 3 # 1 initial + 2 retries
   end
 
   def test_retries_then_succeeds
     stub_request(:post, BALANCE_URL).to_timeout.then.to_return(body: OK_BALANCE)
 
-    assert_in_delta 10.0, @client.balance.balance
+    assert_in_delta 10.0, @client.my.balance
   end
 
   def test_retries_disabled_makes_single_attempt
     client = SmsRu.new("api-id", retries: 0)
     stub = stub_request(:post, BALANCE_URL).to_timeout
 
-    assert_raises(SmsRu::ConnectionError) { client.balance }
+    assert_raises(SmsRu::ConnectionError) { client.my.balance }
     assert_requested stub, times: 1
   end
 
   def test_invalid_json_raises_connection_error_without_retry
     stub = stub_request(:post, BALANCE_URL).to_return(body: "<html>maintenance</html>")
 
-    assert_raises(SmsRu::ConnectionError) { @client.balance }
+    assert_raises(SmsRu::ConnectionError) { @client.my.balance }
     assert_requested stub, times: 1
   end
 
   def test_missing_status_raises_connection_error
     stub_request(:post, BALANCE_URL).to_return(body: '{"foo":"bar"}')
 
-    assert_raises(SmsRu::ConnectionError) { @client.balance }
+    assert_raises(SmsRu::ConnectionError) { @client.my.balance }
   end
 
   def test_auth_error_mapping
     stub_request(:post, BALANCE_URL)
       .to_return(body: '{"status":"ERROR","status_code":200,"status_text":"Wrong api_id"}')
 
-    error = assert_raises(SmsRu::AuthError) { @client.balance }
+    error = assert_raises(SmsRu::AuthError) { @client.my.balance }
     assert_equal 200, error.code
     assert_equal "Wrong api_id", error.text
   end
@@ -76,7 +76,7 @@ class TransportTest < Minitest::Test
   def test_response_error_uses_default_text_when_absent
     stub_request(:post, BALANCE_URL).to_return(body: '{"status":"ERROR","status_code":999}')
 
-    error = assert_raises(SmsRu::ResponseError) { @client.balance }
+    error = assert_raises(SmsRu::ResponseError) { @client.my.balance }
     assert_equal "SMS.ru returned an error", error.text
   end
 
@@ -141,17 +141,17 @@ class TransportTest < Minitest::Test
     assert @client.stoplist.remove("79991234567")
   end
 
-  def test_authed_true_when_api_id_valid
+  def test_auth_ok_when_api_id_valid
     stub_request(:post, "https://sms.ru/auth/check?json=1").to_return(body: '{"status":"OK","status_code":100}')
 
-    assert_predicate @client, :authed?
+    assert_predicate @client.auth, :ok?
   end
 
-  def test_authed_false_on_auth_error
+  def test_auth_not_ok_on_auth_error
     stub_request(:post, "https://sms.ru/auth/check?json=1")
       .to_return(body: '{"status":"ERROR","status_code":200,"status_text":"Wrong api_id"}')
 
-    refute_predicate @client, :authed?
+    refute_predicate @client.auth, :ok?
   end
 
   def test_deliver_array_joins_recipients_with_same_text

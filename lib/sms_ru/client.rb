@@ -96,25 +96,11 @@ class SmsRu
     Call.build(request("/code/call", **{ phone: phone.to_s, ip:, partner_id: }.compact))
   end
 
-  # @return [SmsRu::Balance] the current account balance
-  def balance = Balance.build(request("/my/balance"))
+  # @return [SmsRu::My] the account-info sub-resource (balance, limit, free_limit, senders)
+  def my = @my ||= My.new(method(:request))
 
-  # @return [SmsRu::Limit] the daily sending limit and today's usage
-  def limit = Limit.build(request("/my/limit"))
-
-  # @return [SmsRu::Free] the free-message allowance and today's usage
-  def free = Free.build(request("/my/free"))
-
-  # @return [Array<String>] the approved sender names on the account
-  def senders = request("/my/senders")["senders"] || []
-
-  # @return [Boolean] true when the configured api_id is valid
-  def authed?
-    request("/auth/check")
-    true
-  rescue AuthError
-    false
-  end
+  # @return [SmsRu::Auth] the authentication sub-resource
+  def auth = @auth ||= Auth.new(method(:request))
 
   # @return [SmsRu::Stoplist] the stoplist sub-resource
   def stoplist = @stoplist ||= Stoplist.new(method(:request))

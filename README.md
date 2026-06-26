@@ -61,7 +61,7 @@ client = SmsRu.new("YOUR_API_ID")
 
 result = client.deliver("79991234567", "Hello from Ruby!")
 result.messages.first.sms_id   # => "000000-10000000"
-client.balance.balance         # => 4762.58
+client.my.balance              # => 4762.58
 ```
 
 Get your `api_id` in the SMS.ru dashboard under
@@ -169,19 +169,26 @@ client.callcheck.status(check.check_id).confirmed?  # => true
 
 ## Account information
 
-```ruby
-client.balance.balance     # => 4762.58
+Account reads are grouped under `client.my`:
 
-limit = client.limit
+```ruby
+client.my.balance          # => 4762.58 (a Float)
+
+limit = client.my.limit
 limit.total_limit          # => 100
 limit.used_today           # => 7
 
-free = client.free
+free = client.my.free_limit
 free.total_free            # => 5
 free.used_today            # => 3
 
-client.senders             # => ["MyCompany", "AnotherName"]
-client.authed?             # => true (is the configured api_id valid?)
+client.my.senders          # => ["MyCompany", "AnotherName"]
+```
+
+Check that the configured `api_id` is valid:
+
+```ruby
+client.auth.ok?            # => true
 ```
 
 ## Stoplist
