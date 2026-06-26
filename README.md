@@ -5,6 +5,7 @@
 [![codecov](https://codecov.io/gh/svyatov/smsru_ruby/branch/main/graph/badge.svg)](https://codecov.io/gh/svyatov/smsru_ruby)
 [![Documentation](https://img.shields.io/badge/docs-rubydoc.info-blue.svg)](https://rubydoc.info/gems/smsru_ruby)
 [![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.2-CC342D.svg)](https://www.ruby-lang.org)
+[![Types: RBS](https://img.shields.io/badge/types-RBS-8A2BE2.svg)](https://github.com/svyatov/smsru_ruby/tree/main/sig)
 
 A modern, **dependency-free**, **fully typed** Ruby client for the [SMS.ru](https://sms.ru) HTTP API —
 typed results, typed errors, shipped RBS signatures, and first-class webhooks.
